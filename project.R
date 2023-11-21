@@ -60,6 +60,16 @@ df3 <- df3 %>%
 ##simple linear regression##
 model1 = lm(df3$SleepHrsNight ~ df3$TotChol, data = df3)
 summary(model1)
+
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(model1, which = 1)
+plot(model1, which = 2)
+plot(model1, which = 3)
+plot(model1, which = 4)
+plot(model1, which = 5)
+plot(model1, which = 6)
+par(mfrow = c(1, 1)) # reset
+
 ## multiple linear regression##
 m_initial = lm(SleepHrsNight ~ TotChol + Age + Gender + factor(Race1), df3)
 summary(m_initial)
@@ -76,6 +86,16 @@ m_full = lm(
   df3
 )
 summary(m_full)
+
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(m_full, which = 1)
+plot(m_full, which = 2)
+plot(m_full, which = 3)
+plot(m_full, which = 4)
+plot(m_full, which = 5)
+plot(m_full, which = 6)
+par(mfrow = c(1, 1)) # reset
+
 plot(
   df3$TotChol,
   df3$SleepHrsNight,
@@ -92,6 +112,15 @@ m_logfull_1 = lm(
   df3
 )
 summary(m_logfull_1)
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(m_logfull_1, which = 1)
+plot(m_logfull_1, which = 2)
+plot(m_logfull_1, which = 3)
+plot(m_logfull_1, which = 4)
+plot(m_logfull_1, which = 5)
+plot(m_logfull_1, which = 6)
+par(mfrow = c(1, 1)) # reset
+
 #log x
 df3$logTotChol = log(df3$TotChol + 1)
 m_logfull_2 = lm(
@@ -101,6 +130,16 @@ m_logfull_2 = lm(
   df3
 )
 summary(m_logfull_2)
+
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(m_logfull_2, which = 1)
+plot(m_logfull_2, which = 2)
+plot(m_logfull_2, which = 3)
+plot(m_logfull_2, which = 4)
+plot(m_logfull_2, which = 5)
+plot(m_logfull_2, which = 6)
+par(mfrow = c(1, 1)) # reset
+
 # x^2
 df3$sqTotChol = (df3$TotChol - mean(df3$TotChol)) ^ 2
 m_sqfull_1 = lm(
@@ -110,6 +149,15 @@ m_sqfull_1 = lm(
   df3
 )
 summary(m_sqfull_1)
+
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(m_sqfull_1, which = 1)
+plot(m_sqfull_1, which = 2)
+plot(m_sqfull_1, which = 3)
+plot(m_sqfull_1, which = 4)
+plot(m_sqfull_1, which = 5)
+plot(m_sqfull_1, which = 6)
+par(mfrow = c(1, 1)) # reset
 
 ############### (4) Diagnosis: 10-fold CV ########################################
 
