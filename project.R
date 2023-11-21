@@ -12,12 +12,12 @@ library(dplyr)
 
 df2 <- df %>% select(
   SleepHrsNight,
-  TotChol,
+  BMI,
   DirectChol,
   Age,
   Gender,
   Race1,
-  BMI,
+  TotChol,
   BPDiaAve,
   BPSysAve,
   AlcoholYear,
@@ -28,7 +28,6 @@ df2 <- df %>% select(
   DaysMentHlthBad
 )
 
-Hmisc::describe(df2)
 df3 <- na.omit(df2)
 #df3$SleepHrsNight <- df3$SleepHrsNight * 60
 #df3 <- df3[, -which(names(df3) %in% "SleepHrsNight")]
@@ -55,10 +54,10 @@ df3 <- df3 %>%
   )
 
 ############### (2) Baseline characteristics ########################################
-
+Hmisc::describe(df3)
 ############### (3) linear regression model ########################################
 ##simple linear regression##
-model1 = lm(df3$SleepHrsNight ~ df3$TotChol, data = df3)
+model1 = lm(df3$SleepHrsNight ~ df3$BMI, data = df3)
 summary(model1)
 
 par(mfrow = c(2, 3)) #read more from ?plot.lm
@@ -71,16 +70,16 @@ plot(model1, which = 6)
 par(mfrow = c(1, 1)) # reset
 
 ## multiple linear regression##
-m_initial = lm(SleepHrsNight ~ TotChol + Age + Gender + factor(Race1), df3)
+m_initial = lm(SleepHrsNight ~ BMI + Age + Gender + factor(Race1), df3)
 summary(m_initial)
 m_knrisk = lm(
-  SleepHrsNight ~ TotChol + Age + Gender + factor(Race1) + BMI + BPDiaAve +
+  SleepHrsNight ~ BMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
     BPSysAve + AlcoholYear + DaysMentHlthBad,
   df3
 )
 summary(m_knrisk)
 m_full = lm(
-  SleepHrsNight ~ TotChol + Age + Gender + factor(Race1) + BMI + BPDiaAve +
+  SleepHrsNight ~ BMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
     BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
     SexNumPartYear + Poverty,
   df3
@@ -97,7 +96,7 @@ plot(m_full, which = 6)
 par(mfrow = c(1, 1)) # reset
 
 plot(
-  df3$TotChol,
+  df3$BMI,
   df3$SleepHrsNight,
   main = "Scatter Plot with Linear Regression Line",
   xlab = "X-axis",
@@ -106,7 +105,7 @@ plot(
 #log outcome
 df3$logSleepHrsNight = log(df3$SleepHrsNight + 1)
 m_logfull_1 = lm(
-  logSleepHrsNight ~ TotChol + Age + Gender + factor(Race1) + BMI + BPDiaAve +
+  logSleepHrsNight ~ BMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
     BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
     SexNumPartYear + Poverty,
   df3
@@ -122,9 +121,9 @@ plot(m_logfull_1, which = 6)
 par(mfrow = c(1, 1)) # reset
 
 #log x
-df3$logTotChol = log(df3$TotChol + 1)
+df3$logBMI = log(df3$BMI + 1)
 m_logfull_2 = lm(
-  SleepHrsNight ~ logTotChol + Age + Gender + factor(Race1) + BMI + BPDiaAve +
+  SleepHrsNight ~ logBMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
     BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
     SexNumPartYear + Poverty,
   df3
@@ -141,9 +140,9 @@ plot(m_logfull_2, which = 6)
 par(mfrow = c(1, 1)) # reset
 
 # x^2
-df3$sqTotChol = (df3$TotChol - mean(df3$TotChol)) ^ 2
+df3$sqBMI = (df3$BMI - mean(df3$BMI)) ^ 2
 m_sqfull_1 = lm(
-  SleepHrsNight ~ TotChol + sqTotChol + Age + Gender + factor(Race1) + BMI +
+  SleepHrsNight ~ BMI + sqBMI + Age + Gender + factor(Race1) + TotChol +
     BPDiaAve + BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
     SexNumPartYear + Poverty,
   df3
@@ -231,7 +230,6 @@ results_df <- results_df[, c("Variable", "W", "p.value")]
 results_df$p.adjusted <-
   p.adjust(results_df$p.value, method = "bonferroni")
 print(results_df)
-
 
 # Regular residuals
 residual_1 <- fit0$residuals
