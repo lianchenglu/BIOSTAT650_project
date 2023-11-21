@@ -193,3 +193,152 @@ ols_step_forward_p(fit0,penter=0.05,details=F)
 ols_mallows_cp(model =m_logfull_1, fullmodel =m_full)  # Mallows' Cp
 ols_mallows_cp(model =m_logfull_2, fullmodel =m_full)  # Mallows' Cp
 ols_mallows_cp(model =m_sqfull_1, fullmodel =m_full)  # Mallows' Cp
+
+
+# Regular residuals
+residual_1 <- fit0$residuals
+
+# Standardized residuals
+residual_2 <- rstandard(fit0)
+
+# Studentized residuals
+residual_3 <- rstudent(fit0)
+
+# Externally studentized residuals
+# Note: Externally studentized residuals are the same as studentized residuals in most cases
+residual_4 <- rstudent(fit0)
+
+# Creating a data frame to summarize these residuals
+residual_summary <- data.frame(
+  Residuals = c("Regular", "Standardized", "Studentized", "Externally Studentized"),
+  Mean = c(mean(residual_1), mean(residual_2), mean(residual_3), mean(residual_4)),
+  SD = c(sd(residual_1), sd(residual_2), sd(residual_3), sd(residual_4)),
+  Min = c(min(residual_1), min(residual_2), min(residual_3), min(residual_4)),
+  Max = c(max(residual_1), max(residual_2), max(residual_3), max(residual_4))
+)
+
+# Display the summary
+print(residual_summary)
+
+
+# Load necessary library
+library(ggplot2)
+
+# Assuming fit0 is your linear model
+# fit0 <- lm(SleepMinNight ~ ., data = df3)
+
+# Calculate standardized and studentized residuals
+residual_2 <- rstandard(fit0)
+residual_3 <- rstudent(fit0)
+
+# Calculate leverage values
+leverage_values <- hatvalues(fit0)
+
+# Create a data frame for plotting
+plot_data <- data.frame(
+  Standardized_Residuals = residual_2,
+  Difference = residual_3 - residual_2,
+  Leverage = leverage_values
+)
+
+# Create the plot
+ggplot(plot_data, aes(x = Standardized_Residuals, y = Difference)) +
+  geom_point(aes(size = Leverage)) +
+  ggtitle("Difference between Studentized and Standardized Residuals vs. Standardized Residuals") +
+  xlab("Standardized Residuals") +
+  ylab("Difference between Studentized and Standardized Residuals")
+
+# Display the plot
+print(ggplot)
+
+
+# Load necessary library
+library(ggplot2)
+
+# Assuming fit0 is your linear model
+# fit0 <- lm(SleepMinNight ~ ., data = df3)
+
+# Calculate studentized and externally studentized residuals
+residual_3 <- rstudent(fit0)
+residual_4 <- rstudent(fit0)  # Externally studentized residuals are typically the same as studentized residuals
+
+# Regular residuals
+residual_1 <- fit0$residuals
+
+# Create a data frame for plotting
+plot_data <- data.frame(
+  Studentized_Residuals = residual_3,
+  Difference = residual_4 - residual_3,
+  Residual_Squared = residual_1^2
+)
+
+# Create the plot
+ggplot(plot_data, aes(x = Studentized_Residuals, y = Difference)) +
+  geom_point(aes(size = Residual_Squared)) +
+  ggtitle("Difference between Externally Studentized and Studentized Residuals vs. Studentized Residuals") +
+  xlab("Studentized Residuals") +
+  ylab("Difference between Externally Studentized and Studentized Residuals")
+
+# Display the plot
+print(ggplot)
+
+# Load necessary library
+library(ggplot2)
+
+# Assuming fit0 is your linear model
+# fit0 <- lm(SleepMinNight ~ ., data = df3)
+
+# Calculate regular residuals
+residual_1 <- fit0$residuals
+
+# Get predicted values from the model
+predicted_values <- predict(fit0)
+
+# Create the plot
+ggplot() +
+  geom_point(aes(x = predicted_values, y = residual_1)) +
+  ggtitle("Residuals vs. Predicted Values") +
+  xlab("Predicted Values") +
+  ylab("Residuals") +
+  theme_minimal()
+
+# Display the plot
+print(ggplot)
+
+# Load necessary library
+library(ggplot2)
+
+# Assuming fit0 is your linear model
+# fit0 <- lm(SleepMinNight ~ ., data = df3)
+
+# Calculate different types of residuals
+residual_2 <- rstandard(fit0)
+residual_3 <- rstudent(fit0)
+residual_4 <- rstudent(fit0)  # Externally studentized residuals
+
+# Get predicted values from the model
+predicted_values <- predict(fit0)
+
+# Plot for Standardized Residuals
+ggplot() +
+  geom_point(aes(x = predicted_values, y = residual_2)) +
+  ggtitle("Standardized Residuals vs. Predicted Values") +
+  xlab("Predicted Values") +
+  ylab("Standardized Residuals") +
+  theme_minimal()
+
+# Plot for Studentized Residuals
+ggplot() +
+  geom_point(aes(x = predicted_values, y = residual_3)) +
+  ggtitle("Studentized Residuals vs. Predicted Values") +
+  xlab("Predicted Values") +
+  ylab("Studentized Residuals") +
+  theme_minimal()
+
+# Plot for Externally Studentized Residuals
+ggplot() +
+  geom_point(aes(x = predicted_values, y = residual_4)) +
+  ggtitle("Externally Studentized Residuals vs. Predicted Values") +
+  xlab("Predicted Values") +
+  ylab("Externally Studentized Residuals") +
+  theme_minimal()
