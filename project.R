@@ -9,6 +9,7 @@ df <- df[, which(colSums(is.na(df)) / nrow(df) < 0.3)]
 # colSums(is.na(df)) / nrow(df)
 # df$BPSysAve
 library(dplyr)
+library(car)
 
 df2 <- df %>% select(
   SleepHrsNight,
@@ -85,7 +86,7 @@ m_full = lm(
   df3
 )
 summary(m_full)
-
+vif(m_full)
 par(mfrow = c(2, 3)) #read more from ?plot.lm
 plot(m_full, which = 1)
 plot(m_full, which = 2)
@@ -102,34 +103,21 @@ plot(
   xlab = "X-axis",
   ylab = "Y-axis"
 )
-#log outcome
-df3$logSleepHrsNight = log(df3$SleepHrsNight + 1)
-m_logfull_1 = lm(
-  logSleepHrsNight ~ BMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
-    BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
-    SexNumPartYear + Poverty,
-  df3
-)
-summary(m_logfull_1)
-par(mfrow = c(2, 3)) #read more from ?plot.lm
-plot(m_logfull_1, which = 1)
-plot(m_logfull_1, which = 2)
-plot(m_logfull_1, which = 3)
-plot(m_logfull_1, which = 4)
-plot(m_logfull_1, which = 5)
-plot(m_logfull_1, which = 6)
-par(mfrow = c(1, 1)) # reset
 
 #log x
 df3$logBMI = log(df3$BMI + 1)
+df3$logSleepHrsNight = log(df3$SleepHrsNight + 1)
+df3$logDaysMentHlthBad = log(df3$DaysMentHlthBad + 1)
+df3$invTotChol = 1 / df3$TotChol
+df3$sqrtDaysMentHlthBad = sqrt(df3$DaysMentHlthBad)
+df3$sqBMI = (df3$BMI - mean(df3$BMI)) ^ 2
 m_logfull_2 = lm(
-  SleepHrsNight ~ logBMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
-    BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
+  logSleepHrsNight ~ Age + Gender + factor(Race1) + logBMI + invTotChol +
+    BPDiaAve + BPSysAve + AlcoholYear + sqrtDaysMentHlthBad + HomeRooms + SexNumPartnLife +
     SexNumPartYear + Poverty,
   df3
 )
 summary(m_logfull_2)
-
 par(mfrow = c(2, 3)) #read more from ?plot.lm
 plot(m_logfull_2, which = 1)
 plot(m_logfull_2, which = 2)
@@ -139,25 +127,6 @@ plot(m_logfull_2, which = 5)
 plot(m_logfull_2, which = 6)
 par(mfrow = c(1, 1)) # reset
 
-# x^2
-df3$sqBMI = (df3$BMI - mean(df3$BMI)) ^ 2
-m_sqfull_1 = lm(
-  SleepHrsNight ~ BMI + sqBMI + Age + Gender + factor(Race1) + TotChol +
-    BPDiaAve + BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
-    SexNumPartYear + Poverty,
-  df3
-)
-summary(m_sqfull_1)
-
-par(mfrow = c(2, 3)) #read more from ?plot.lm
-plot(m_sqfull_1, which = 1)
-plot(m_sqfull_1, which = 2)
-plot(m_sqfull_1, which = 3)
-plot(m_sqfull_1, which = 4)
-plot(m_sqfull_1, which = 5)
-plot(m_sqfull_1, which = 6)
-par(mfrow = c(1, 1)) # reset
-
 ############### (4) Diagnosis: 10-fold CV ########################################
 
 library(caret)
@@ -165,7 +134,7 @@ splitIndex <-
   createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
 trainData <- df3[splitIndex,]
 testData <- df3[-splitIndex,]
-predictions <- predict(m_sqfull_1, newdata = testData)
+predictions <- predict(m_logfull_2, newdata = testData)
 mse <- mean((testData$SleepHrsNight - predictions) ^ 2)
 control <-
   trainControl(method = "cv", number = 10)  # 10-fold cross-validation
@@ -246,11 +215,36 @@ residual_4 <- rstudent(fit0)
 
 # Creating a data frame to summarize these residuals
 residual_summary <- data.frame(
-  Residuals = c("Regular", "Standardized", "Studentized", "Externally Studentized"),
-  Mean = c(mean(residual_1), mean(residual_2), mean(residual_3), mean(residual_4)),
-  SD = c(sd(residual_1), sd(residual_2), sd(residual_3), sd(residual_4)),
-  Min = c(min(residual_1), min(residual_2), min(residual_3), min(residual_4)),
-  Max = c(max(residual_1), max(residual_2), max(residual_3), max(residual_4))
+  Residuals = c(
+    "Regular",
+    "Standardized",
+    "Studentized",
+    "Externally Studentized"
+  ),
+  Mean = c(
+    mean(residual_1),
+    mean(residual_2),
+    mean(residual_3),
+    mean(residual_4)
+  ),
+  SD = c(
+    sd(residual_1),
+    sd(residual_2),
+    sd(residual_3),
+    sd(residual_4)
+  ),
+  Min = c(
+    min(residual_1),
+    min(residual_2),
+    min(residual_3),
+    min(residual_4)
+  ),
+  Max = c(
+    max(residual_1),
+    max(residual_2),
+    max(residual_3),
+    max(residual_4)
+  )
 )
 
 # Display the summary
@@ -296,7 +290,8 @@ library(ggplot2)
 
 # Calculate studentized and externally studentized residuals
 residual_3 <- rstudent(fit0)
-residual_4 <- rstudent(fit0)  # Externally studentized residuals are typically the same as studentized residuals
+residual_4 <-
+  rstudent(fit0)  # Externally studentized residuals are typically the same as studentized residuals
 
 # Regular residuals
 residual_1 <- fit0$residuals
@@ -305,13 +300,15 @@ residual_1 <- fit0$residuals
 plot_data <- data.frame(
   Studentized_Residuals = residual_3,
   Difference = residual_4 - residual_3,
-  Residual_Squared = residual_1^2
+  Residual_Squared = residual_1 ^ 2
 )
 
 # Create the plot
 ggplot(plot_data, aes(x = Studentized_Residuals, y = Difference)) +
   geom_point(aes(size = Residual_Squared)) +
-  ggtitle("Difference between Externally Studentized and Studentized Residuals vs. Studentized Residuals") +
+  ggtitle(
+    "Difference between Externally Studentized and Studentized Residuals vs. Studentized Residuals"
+  ) +
   xlab("Studentized Residuals") +
   ylab("Difference between Externally Studentized and Studentized Residuals")
 
@@ -383,8 +380,6 @@ ggplot() +
 ############### (5) Model Selection ########################################
 step(fit0)
 library(olsrr)
-ols_step_forward_p(fit0,penter=0.1,details=F)
-ols_step_forward_p(fit0,penter=0.05,details=F)
-ols_mallows_cp(model =m_logfull_1, fullmodel =m_full)  # Mallows' Cp
-ols_mallows_cp(model =m_logfull_2, fullmodel =m_full)  # Mallows' Cp
-ols_mallows_cp(model =m_sqfull_1, fullmodel =m_full)  # Mallows' Cp
+ols_step_forward_p(m_full, penter = 0.1, details = F)
+ols_step_forward_p(m_full, penter = 0.05, details = F)
+ols_mallows_cp(model = m_logfull_2, fullmodel = m_full)  # Mallows' Cp

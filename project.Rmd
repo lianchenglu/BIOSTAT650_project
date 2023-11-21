@@ -23,7 +23,7 @@ df <- df[, which(colSums(is.na(df)) / nrow(df) < 0.3)]
 # colSums(is.na(df)) / nrow(df)
 # df$BPSysAve
 library(dplyr)
-
+library(car)
 df2 <- df %>% select(
   SleepHrsNight,
   BMI,
@@ -79,7 +79,6 @@ Hmisc::describe(df3)
 # (3) linear regression model
 
 ```{r}
-##simple linear regression##
 model1 = lm(df3$SleepHrsNight ~ df3$BMI, data = df3)
 summary(model1)
 
@@ -108,7 +107,7 @@ m_full = lm(
   df3
 )
 summary(m_full)
-
+vif(m_full)
 par(mfrow = c(2, 3)) #read more from ?plot.lm
 plot(m_full, which = 1)
 plot(m_full, which = 2)
@@ -125,34 +124,21 @@ plot(
   xlab = "X-axis",
   ylab = "Y-axis"
 )
-#log outcome
-df3$logSleepHrsNight = log(df3$SleepHrsNight + 1)
-m_logfull_1 = lm(
-  logSleepHrsNight ~ BMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
-    BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
-    SexNumPartYear + Poverty,
-  df3
-)
-summary(m_logfull_1)
-par(mfrow = c(2, 3)) #read more from ?plot.lm
-plot(m_logfull_1, which = 1)
-plot(m_logfull_1, which = 2)
-plot(m_logfull_1, which = 3)
-plot(m_logfull_1, which = 4)
-plot(m_logfull_1, which = 5)
-plot(m_logfull_1, which = 6)
-par(mfrow = c(1, 1)) # reset
 
 #log x
 df3$logBMI = log(df3$BMI + 1)
+df3$logSleepHrsNight = log(df3$SleepHrsNight + 1)
+df3$logDaysMentHlthBad = log(df3$DaysMentHlthBad + 1)
+df3$invTotChol = 1 / df3$TotChol
+df3$sqrtDaysMentHlthBad = sqrt(df3$DaysMentHlthBad)
+df3$sqBMI = (df3$BMI - mean(df3$BMI)) ^ 2
 m_logfull_2 = lm(
-  SleepHrsNight ~ logBMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
-    BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
+  logSleepHrsNight ~ Age + Gender + factor(Race1) + logBMI + invTotChol +
+    BPDiaAve + BPSysAve + AlcoholYear + sqrtDaysMentHlthBad + HomeRooms + SexNumPartnLife +
     SexNumPartYear + Poverty,
   df3
 )
 summary(m_logfull_2)
-
 par(mfrow = c(2, 3)) #read more from ?plot.lm
 plot(m_logfull_2, which = 1)
 plot(m_logfull_2, which = 2)
@@ -160,25 +146,6 @@ plot(m_logfull_2, which = 3)
 plot(m_logfull_2, which = 4)
 plot(m_logfull_2, which = 5)
 plot(m_logfull_2, which = 6)
-par(mfrow = c(1, 1)) # reset
-
-# x^2
-df3$sqBMI = (df3$BMI - mean(df3$BMI)) ^ 2
-m_sqfull_1 = lm(
-  SleepHrsNight ~ BMI + sqBMI + Age + Gender + factor(Race1) + TotChol +
-    BPDiaAve + BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
-    SexNumPartYear + Poverty,
-  df3
-)
-summary(m_sqfull_1)
-
-par(mfrow = c(2, 3)) #read more from ?plot.lm
-plot(m_sqfull_1, which = 1)
-plot(m_sqfull_1, which = 2)
-plot(m_sqfull_1, which = 3)
-plot(m_sqfull_1, which = 4)
-plot(m_sqfull_1, which = 5)
-plot(m_sqfull_1, which = 6)
 par(mfrow = c(1, 1)) # reset
 ```
 
@@ -188,9 +155,9 @@ par(mfrow = c(1, 1)) # reset
 library(caret)
 splitIndex <-
   createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
-trainData <- df3[splitIndex,]
-testData <- df3[-splitIndex,]
-predictions <- predict(m_sqfull_1, newdata = testData)
+trainData <- df3[splitIndex, ]
+testData <- df3[-splitIndex, ]
+predictions <- predict(m_logfull_2, newdata = testData)
 mse <- mean((testData$SleepHrsNight - predictions) ^ 2)
 control <-
   trainControl(method = "cv", number = 10)  # 10-fold cross-validation
@@ -420,11 +387,8 @@ ggplot() +
 ```{r}
 step(fit0)
 library(olsrr)
-ols_step_forward_p(fit0,penter=0.1,details=F)
-ols_step_forward_p(fit0,penter=0.05,details=F)
-ols_mallows_cp(model =m_logfull_1, fullmodel =m_full)  # Mallows' Cp
-ols_mallows_cp(model =m_logfull_2, fullmodel =m_full)  # Mallows' Cp
-ols_mallows_cp(model =m_sqfull_1, fullmodel =m_full)  # Mallows' Cp
-
+ols_step_forward_p(m_full, penter = 0.1, details = F)
+ols_step_forward_p(m_full, penter = 0.05, details = F)
+ols_mallows_cp(model = m_logfull_2, fullmodel = m_full)  # Mallows' Cp
 ```
 
