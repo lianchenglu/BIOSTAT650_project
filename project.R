@@ -184,17 +184,6 @@ results_df$p.adjusted <-
   p.adjust(results_df$p.value, method = "bonferroni")
 print(results_df)
 
-
-############### (5) Model Selection ########################################
-step(fit0)
-library(olsrr)
-ols_step_forward_p(fit0,penter=0.1,details=F)
-ols_step_forward_p(fit0,penter=0.05,details=F)
-ols_mallows_cp(model =m_logfull_1, fullmodel =m_full)  # Mallows' Cp
-ols_mallows_cp(model =m_logfull_2, fullmodel =m_full)  # Mallows' Cp
-ols_mallows_cp(model =m_sqfull_1, fullmodel =m_full)  # Mallows' Cp
-
-
 # Regular residuals
 residual_1 <- fit0$residuals
 
@@ -342,3 +331,13 @@ ggplot() +
   xlab("Predicted Values") +
   ylab("Externally Studentized Residuals") +
   theme_minimal()
+
+
+############### (5) Model Selection ########################################
+step(fit0)
+library(olsrr)
+ols_step_forward_p(fit0,penter=0.1,details=F)
+ols_step_forward_p(fit0,penter=0.05,details=F)
+ols_mallows_cp(model =m_logfull_1, fullmodel =m_full)  # Mallows' Cp
+ols_mallows_cp(model =m_logfull_2, fullmodel =m_full)  # Mallows' Cp
+ols_mallows_cp(model =m_sqfull_1, fullmodel =m_full)  # Mallows' Cp
