@@ -1,3 +1,17 @@
+---
+title: "project"
+author: "Liancheng"
+date: "2023-11-21"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# (1) Data cleaning
+
+```{r}
 rm(list = ls())
 gc()
 set.seed(123)
@@ -54,9 +68,18 @@ df3 <- df3 %>%
     )
   )
 
-############### (2) Baseline characteristics ########################################
+```
 
-############### (3) linear regression model ########################################
+# (2) Baseline characteristics
+
+```{r}
+
+```
+
+
+# (3) linear regression model
+
+```{r}
 ##simple linear regression##
 model1 = lm(df3$SleepHrsNight ~ df3$TotChol, data = df3)
 summary(model1)
@@ -110,9 +133,11 @@ m_sqfull_1 = lm(
   df3
 )
 summary(m_sqfull_1)
+```
 
-############### (4) Diagnosis: 10-fold CV ########################################
+# (4) Diagnosis: 10-fold CV
 
+```{r}
 library(caret)
 splitIndex <-
   createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
@@ -131,9 +156,11 @@ cv_model <-
   )
 cv_model
 (cv_results <- cv_model$results)
+```
 
-############### (4) Diagnosis: Normality Assumption ########################################
+# (4) Diagnosis: Normality Assumption
 
+```{r, fig.width=10,fig.height=20}
 library(ggplot2)
 library(patchwork)
 # Initializes an empty patchwork object
@@ -160,7 +187,10 @@ for (var in names(df3)) {
 # Use patchwork to put all the charts together
 combined_plot <- wrap_plots(plot_list, ncol = 2)
 print(combined_plot)
+```
 
+
+```{r}
 df3 <- data.frame(df3)
 library(dplyr)
 # Shapiro-Wilk normality test is performed for each numerical variable in df3
@@ -183,7 +213,11 @@ results_df <- results_df[, c("Variable", "W", "p.value")]
 results_df$p.adjusted <-
   p.adjust(results_df$p.value, method = "bonferroni")
 print(results_df)
+```
 
+# Standardized residuals, Studentized residuals
+
+```{r}
 
 # Regular residuals
 residual_1 <- fit0$residuals
@@ -333,8 +367,11 @@ ggplot() +
   ylab("Externally Studentized Residuals") +
   theme_minimal()
 
+```
 
-############### (5) Model Selection ########################################
+# (5) Model Selection
+
+```{r}
 step(fit0)
 library(olsrr)
 ols_step_forward_p(fit0,penter=0.1,details=F)
@@ -342,3 +379,6 @@ ols_step_forward_p(fit0,penter=0.05,details=F)
 ols_mallows_cp(model =m_logfull_1, fullmodel =m_full)  # Mallows' Cp
 ols_mallows_cp(model =m_logfull_2, fullmodel =m_full)  # Mallows' Cp
 ols_mallows_cp(model =m_sqfull_1, fullmodel =m_full)  # Mallows' Cp
+
+```
+
