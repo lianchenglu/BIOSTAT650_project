@@ -20,6 +20,7 @@ library(NHANES)
 df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60, ]
 # colSums(is.na(df)) / nrow(df)
 df <- df[, which(colSums(is.na(df)) / nrow(df) < 0.3)]
+df <- df[!duplicated(df), ]
 # colSums(is.na(df)) / nrow(df)
 # df$BPSysAve
 library(dplyr)

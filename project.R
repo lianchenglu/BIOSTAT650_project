@@ -10,6 +10,7 @@ df <- df[, which(colSums(is.na(df)) / nrow(df) < 0.3)]
 # df$BPSysAve
 library(dplyr)
 library(car)
+df <- df[!duplicated(df), ]
 
 df2 <- df %>% select(
   SleepHrsNight,
@@ -53,6 +54,8 @@ df3 <- df3 %>%
       TRUE ~ NA_integer_  # Default value if none of the conditions are met
     )
   )
+
+
 
 ############### (2) Baseline characteristics ########################################
 Hmisc::describe(df3)
