@@ -1,6 +1,6 @@
 ---
-title: "project"
-author: "Liancheng"
+title: "BIOSTAT650_Final_Project"
+author: "Liancheng, He Zhang, Zhengrui Huang, Zibo Yu"
 date: "2023-11-21"
 output: pdf_document
 ---
@@ -16,15 +16,18 @@ rm(list = ls())
 gc()
 set.seed(123)
 ############### (1) Data cleaning ########################################
+## select variables
 library(NHANES)
-df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60, ]
+df0 <- NHANES
+df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60,]
 # colSums(is.na(df)) / nrow(df)
 df <- df[, which(colSums(is.na(df)) / nrow(df) < 0.3)]
-df <- df[!duplicated(df), ]
-# colSums(is.na(df)) / nrow(df)
+# exclude duplication
+df <- df[!duplicated(df),]
+names(df)
 # df$BPSysAve
 library(dplyr)
-library(car)
+
 df2 <- df %>% select(
   SleepHrsNight,
   BMI,
@@ -37,10 +40,16 @@ df2 <- df %>% select(
   BPSysAve,
   AlcoholYear,
   Poverty,
-  HomeRooms,
   SexNumPartnLife,
   SexNumPartYear,
-  DaysMentHlthBad
+  DaysMentHlthBad,
+  UrineFlow1,
+  PhysActive,
+  DaysPhysHlthBad,
+  Smoke100,
+  Depressed,
+  HealthGen,
+  SexAge
 )
 
 df3 <- na.omit(df2)
@@ -67,7 +76,6 @@ df3 <- df3 %>%
       TRUE ~ NA_integer_  # Default value if none of the conditions are met
     )
   )
-
 ```
 
 # (2) Baseline characteristics
@@ -80,6 +88,7 @@ Hmisc::describe(df3)
 # (3) linear regression model
 
 ```{r}
+##simple linear regression##
 model1 = lm(df3$SleepHrsNight ~ df3$BMI, data = df3)
 summary(model1)
 
@@ -92,62 +101,67 @@ plot(model1, which = 5)
 plot(model1, which = 6)
 par(mfrow = c(1, 1)) # reset
 
-## multiple linear regression##
-m_initial = lm(SleepHrsNight ~ BMI + Age + Gender + factor(Race1), df3)
-summary(m_initial)
-m_knrisk = lm(
-  SleepHrsNight ~ BMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
-    BPSysAve + AlcoholYear + DaysMentHlthBad,
+dummy_b = 1 * (df3$Race1 == "Black")
+dummy_h = 1 * (df3$Race1 == "Hispanic")
+dummy_m = 1 * (df3$Race1 == "Mexican")
+dummy_w = 1 * (df3$Race1 == "White")
+dummy_o = 1 * (df3$Race1 == "Other")
+
+age_quant = quantile(df3$Age)
+df3$AgeC = 0
+df3$AgeC[df3$Age > age_quant[2] & df3$Age <= age_quant[3]] = 1
+df3$AgeC[df3$Age > age_quant[3] & df3$Age <= age_quant[4]] = 2
+df3$AgeC[df3$Age > age_quant[4]] = 3
+
+### multiple linear regression###
+# model_1 add demographic
+m_1 = lm(BMI ~ SleepHrsNight + Age + Gender + factor(Race1), df3)
+summary(m_1)
+
+
+
+## model_2 add known risk factors
+m_2 = lm(
+  BMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
+    DaysPhysHlthBad + PhysActive,
   df3
 )
-summary(m_knrisk)
+summary(m_2)
+
+#LINE
+
+#influential observations
+
+#multicollinearity
+
+
+
+
+
+
+
+
+
+
+
+## model_3 add additional risk factors
+
+m_3 = lm(
+  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+    DaysPhysHlthBad + HealthGen + PhysActive,
+  df3
+)
+summary(m_3)
+
+# model_4 add additional risk factors
 m_full = lm(
-  SleepHrsNight ~ BMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
-    BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
-    SexNumPartYear + Poverty,
+  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+    DaysPhysHlthBad + HealthGen + PhysActive + SleepHrsNight * Age + SleepHrsNight *
+    Gender + SleepHrsNight * factor(Race1),
   df3
 )
 summary(m_full)
-vif(m_full)
-par(mfrow = c(2, 3)) #read more from ?plot.lm
-plot(m_full, which = 1)
-plot(m_full, which = 2)
-plot(m_full, which = 3)
-plot(m_full, which = 4)
-plot(m_full, which = 5)
-plot(m_full, which = 6)
-par(mfrow = c(1, 1)) # reset
 
-plot(
-  df3$BMI,
-  df3$SleepHrsNight,
-  main = "Scatter Plot with Linear Regression Line",
-  xlab = "X-axis",
-  ylab = "Y-axis"
-)
-
-#log x
-df3$logBMI = log(df3$BMI + 1)
-df3$logSleepHrsNight = log(df3$SleepHrsNight + 1)
-df3$logDaysMentHlthBad = log(df3$DaysMentHlthBad + 1)
-df3$invTotChol = 1 / df3$TotChol
-df3$sqrtDaysMentHlthBad = sqrt(df3$DaysMentHlthBad)
-df3$sqBMI = (df3$BMI - mean(df3$BMI)) ^ 2
-m_logfull_2 = lm(
-  logSleepHrsNight ~ Age + Gender + factor(Race1) + logBMI + invTotChol +
-    BPDiaAve + BPSysAve + AlcoholYear + sqrtDaysMentHlthBad + HomeRooms + SexNumPartnLife +
-    SexNumPartYear + Poverty,
-  df3
-)
-summary(m_logfull_2)
-par(mfrow = c(2, 3)) #read more from ?plot.lm
-plot(m_logfull_2, which = 1)
-plot(m_logfull_2, which = 2)
-plot(m_logfull_2, which = 3)
-plot(m_logfull_2, which = 4)
-plot(m_logfull_2, which = 5)
-plot(m_logfull_2, which = 6)
-par(mfrow = c(1, 1)) # reset
 ```
 
 # (4) Diagnosis: 10-fold CV
@@ -158,7 +172,7 @@ splitIndex <-
   createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
 trainData <- df3[splitIndex, ]
 testData <- df3[-splitIndex, ]
-predictions <- predict(m_logfull_2, newdata = testData)
+predictions <- predict(m_3, newdata = testData)
 mse <- mean((testData$SleepHrsNight - predictions) ^ 2)
 control <-
   trainControl(method = "cv", number = 10)  # 10-fold cross-validation
@@ -234,17 +248,17 @@ print(results_df)
 
 ```{r}
 # Regular residuals
-residual_1 <- fit0$residuals
+residual_1 <- m_full$residuals
 
 # Standardized residuals
-residual_2 <- rstandard(fit0)
+residual_2 <- rstandard(m_full)
 
 # Studentized residuals
-residual_3 <- rstudent(fit0)
+residual_3 <- rstudent(m_full)
 
 # Externally studentized residuals
 # Note: Externally studentized residuals are the same as studentized residuals in most cases
-residual_4 <- rstudent(fit0)
+residual_4 <- rstudent(m_full)
 
 # Creating a data frame to summarize these residuals
 residual_summary <- data.frame(
@@ -262,15 +276,15 @@ print(residual_summary)
 # Load necessary library
 library(ggplot2)
 
-# Assuming fit0 is your linear model
-# fit0 <- lm(SleepMinNight ~ ., data = df3)
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
 
 # Calculate standardized and studentized residuals
-residual_2 <- rstandard(fit0)
-residual_3 <- rstudent(fit0)
+residual_2 <- rstandard(m_full)
+residual_3 <- rstudent(m_full)
 
 # Calculate leverage values
-leverage_values <- hatvalues(fit0)
+leverage_values <- hatvalues(m_full)
 
 # Create a data frame for plotting
 plot_data <- data.frame(
@@ -293,15 +307,15 @@ print(ggplot)
 # Load necessary library
 library(ggplot2)
 
-# Assuming fit0 is your linear model
-# fit0 <- lm(SleepMinNight ~ ., data = df3)
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
 
 # Calculate studentized and externally studentized residuals
-residual_3 <- rstudent(fit0)
-residual_4 <- rstudent(fit0)  # Externally studentized residuals are typically the same as studentized residuals
+residual_3 <- rstudent(m_full)
+residual_4 <- rstudent(m_full)  # Externally studentized residuals are typically the same as studentized residuals
 
 # Regular residuals
-residual_1 <- fit0$residuals
+residual_1 <- m_full$residuals
 
 # Create a data frame for plotting
 plot_data <- data.frame(
@@ -323,14 +337,14 @@ print(ggplot)
 # Load necessary library
 library(ggplot2)
 
-# Assuming fit0 is your linear model
-# fit0 <- lm(SleepMinNight ~ ., data = df3)
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
 
 # Calculate regular residuals
-residual_1 <- fit0$residuals
+residual_1 <- m_full$residuals
 
 # Get predicted values from the model
-predicted_values <- predict(fit0)
+predicted_values <- predict(m_full)
 
 # Create the plot
 ggplot() +
@@ -346,16 +360,16 @@ print(ggplot)
 # Load necessary library
 library(ggplot2)
 
-# Assuming fit0 is your linear model
-# fit0 <- lm(SleepMinNight ~ ., data = df3)
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
 
 # Calculate different types of residuals
-residual_2 <- rstandard(fit0)
-residual_3 <- rstudent(fit0)
-residual_4 <- rstudent(fit0)  # Externally studentized residuals
+residual_2 <- rstandard(m_full)
+residual_3 <- rstudent(m_full)
+residual_4 <- rstudent(m_full)  # Externally studentized residuals
 
 # Get predicted values from the model
-predicted_values <- predict(fit0)
+predicted_values <- predict(m_full)
 
 # Plot for Standardized Residuals
 ggplot() +
@@ -386,10 +400,10 @@ ggplot() +
 # (5) Model Selection
 
 ```{r}
-step(fit0)
+step(m_full)
 library(olsrr)
 ols_step_forward_p(m_full, penter = 0.1, details = F)
 ols_step_forward_p(m_full, penter = 0.05, details = F)
-ols_mallows_cp(model = m_logfull_2, fullmodel = m_full)  # Mallows' Cp
+ols_mallows_cp(model = m_3, fullmodel = m_full)  # Mallows' Cp
 ```
 

@@ -155,7 +155,7 @@ splitIndex <-
   createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
 trainData <- df3[splitIndex, ]
 testData <- df3[-splitIndex, ]
-predictions <- predict(m_sqfull_1, newdata = testData)
+predictions <- predict(m_3, newdata = testData)
 mse <- mean((testData$SleepHrsNight - predictions) ^ 2)
 control <-
   trainControl(method = "cv", number = 10)  # 10-fold cross-validation
@@ -222,17 +222,17 @@ results_df$p.adjusted <-
 print(results_df)
 
 # Regular residuals
-residual_1 <- fit0$residuals
+residual_1 <- m_full$residuals
 
 # Standardized residuals
-residual_2 <- rstandard(fit0)
+residual_2 <- rstandard(m_full)
 
 # Studentized residuals
-residual_3 <- rstudent(fit0)
+residual_3 <- rstudent(m_full)
 
 # Externally studentized residuals
 # Note: Externally studentized residuals are the same as studentized residuals in most cases
-residual_4 <- rstudent(fit0)
+residual_4 <- rstudent(m_full)
 
 # Creating a data frame to summarize these residuals
 residual_summary <- data.frame(
@@ -275,15 +275,15 @@ print(residual_summary)
 # Load necessary library
 library(ggplot2)
 
-# Assuming fit0 is your linear model
-# fit0 <- lm(SleepMinNight ~ ., data = df3)
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
 
 # Calculate standardized and studentized residuals
-residual_2 <- rstandard(fit0)
-residual_3 <- rstudent(fit0)
+residual_2 <- rstandard(m_full)
+residual_3 <- rstudent(m_full)
 
 # Calculate leverage values
-leverage_values <- hatvalues(fit0)
+leverage_values <- hatvalues(m_full)
 
 # Create a data frame for plotting
 plot_data <- data.frame(
@@ -306,16 +306,16 @@ print(ggplot)
 # Load necessary library
 library(ggplot2)
 
-# Assuming fit0 is your linear model
-# fit0 <- lm(SleepMinNight ~ ., data = df3)
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
 
 # Calculate studentized and externally studentized residuals
-residual_3 <- rstudent(fit0)
+residual_3 <- rstudent(m_full)
 residual_4 <-
-  rstudent(fit0)  # Externally studentized residuals are typically the same as studentized residuals
+  rstudent(m_full)  # Externally studentized residuals are typically the same as studentized residuals
 
 # Regular residuals
-residual_1 <- fit0$residuals
+residual_1 <- m_full$residuals
 
 # Create a data frame for plotting
 plot_data <- data.frame(
@@ -339,14 +339,14 @@ print(ggplot)
 # Load necessary library
 library(ggplot2)
 
-# Assuming fit0 is your linear model
-# fit0 <- lm(SleepMinNight ~ ., data = df3)
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
 
 # Calculate regular residuals
-residual_1 <- fit0$residuals
+residual_1 <- m_full$residuals
 
 # Get predicted values from the model
-predicted_values <- predict(fit0)
+predicted_values <- predict(m_full)
 
 # Create the plot
 ggplot() +
@@ -362,16 +362,16 @@ print(ggplot)
 # Load necessary library
 library(ggplot2)
 
-# Assuming fit0 is your linear model
-# fit0 <- lm(SleepMinNight ~ ., data = df3)
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
 
 # Calculate different types of residuals
-residual_2 <- rstandard(fit0)
-residual_3 <- rstudent(fit0)
-residual_4 <- rstudent(fit0)  # Externally studentized residuals
+residual_2 <- rstandard(m_full)
+residual_3 <- rstudent(m_full)
+residual_4 <- rstudent(m_full)  # Externally studentized residuals
 
 # Get predicted values from the model
-predicted_values <- predict(fit0)
+predicted_values <- predict(m_full)
 
 # Plot for Standardized Residuals
 ggplot() +
