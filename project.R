@@ -119,8 +119,8 @@ summary(m_2)
 
 #multicollinearity
 
-
-
+vif(m_1)
+vif(m_2)
 
 
 
@@ -137,17 +137,67 @@ m_3 = lm(
   df3
 )
 summary(m_3)
+vif(m_3)
+
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(m_3, which = 1)
+plot(m_3, which = 2)
+plot(m_3, which = 3)
+plot(m_3, which = 4)
+plot(m_3, which = 5)
+plot(m_3, which = 6)
+par(mfrow = c(1, 1)) # reset
 
 # model_4 add additional risk factors
 m_full = lm(
   BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
     DaysPhysHlthBad + HealthGen + PhysActive + SleepHrsNight * Age + SleepHrsNight *
-    Gender + SleepHrsNight * factor(Race1),
+    Gender,
   df3
 )
 summary(m_full)
+vif(m_full)
 
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(m_full, which = 1)
+plot(m_full, which = 2)
+plot(m_full, which = 3)
+plot(m_full, which = 4)
+plot(m_full, which = 5)
+plot(m_full, which = 6)
+par(mfrow = c(1, 1)) # reset
 
+getMode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+new_data <- expand.grid(SleepHrsNight = seq(min(df3$SleepHrsNight), max(df3$SleepHrsNight), length.out = 100),
+                        Age = quantile(df3$Age, probs = c(0.25, 0.5, 0.75)),
+                        Gender = median(df3$Gender, na.rm = TRUE),
+                        Race1 = median(df3$Race1, na.rm = TRUE),
+                        Poverty = median(df3$Poverty, na.rm = TRUE),
+                        TotChol = median(df3$TotChol, na.rm = TRUE),
+                        BPDiaAve = median(df3$BPDiaAve, na.rm = TRUE),
+                        BPSysAve = median(df3$BPSysAve, na.rm = TRUE),
+                        AlcoholYear = median(df3$AlcoholYear, na.rm = TRUE),
+                        Smoke100 = getMode(df3$Smoke100),
+                        UrineFlow1 = median(df3$UrineFlow1, na.rm = TRUE),
+                        DaysMentHlthBad = median(df3$DaysMentHlthBad, na.rm = TRUE),
+                        DaysPhysHlthBad = median(df3$DaysPhysHlthBad, na.rm = TRUE),
+                        HealthGen = getMode(df3$HealthGen),
+                        PhysActive = getMode(df3$PhysActive)
+)
+
+# predict
+new_data$predicted_BMI <- predict(m_full, newdata = new_data)
+# interaction
+library(ggplot2)
+ggplot(new_data, aes(x = SleepHrsNight, y = predicted_BMI, group = factor(Age))) +
+  geom_line(aes(color = factor(Age))) +
+  labs(title = "Interaction between Sleep Hours and Age on BMI",
+       x = "Sleep Hours per Night",
+       y = "Predicted BMI")
 ############### (4) Diagnosis: 10-fold CV ########################################
 
 library(caret)
@@ -155,7 +205,7 @@ splitIndex <-
   createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
 trainData <- df3[splitIndex, ]
 testData <- df3[-splitIndex, ]
-predictions <- predict(m_3, newdata = testData)
+predictions <- predict(m_full, newdata = testData)
 mse <- mean((testData$SleepHrsNight - predictions) ^ 2)
 control <-
   trainControl(method = "cv", number = 10)  # 10-fold cross-validation
