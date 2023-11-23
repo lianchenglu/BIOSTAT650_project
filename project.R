@@ -2,15 +2,17 @@ rm(list = ls())
 gc()
 set.seed(123)
 ############### (1) Data cleaning ########################################
+## select variables
 library(NHANES)
-df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60, ]
+df0 <- NHANES
+df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60,]
 # colSums(is.na(df)) / nrow(df)
 df <- df[, which(colSums(is.na(df)) / nrow(df) < 0.3)]
-# colSums(is.na(df)) / nrow(df)
+# exclude duplication
+df <- df[!duplicated(df),]
+names(df)
 # df$BPSysAve
 library(dplyr)
-library(car)
-df <- df[!duplicated(df), ]
 
 df2 <- df %>% select(
   SleepHrsNight,
@@ -24,10 +26,16 @@ df2 <- df %>% select(
   BPSysAve,
   AlcoholYear,
   Poverty,
-  HomeRooms,
   SexNumPartnLife,
   SexNumPartYear,
-  DaysMentHlthBad
+  DaysMentHlthBad,
+  UrineFlow1,
+  PhysActive,
+  DaysPhysHlthBad,
+  Smoke100,
+  Depressed,
+  HealthGen,
+  SexAge
 )
 
 df3 <- na.omit(df2)
@@ -55,10 +63,15 @@ df3 <- df3 %>%
     )
   )
 
+##variables diagnosis? normality
 
+##descriptive statisctis covariates (like modulek p55)
+psych::pairs.panels(df3)
 
 ############### (2) Baseline characteristics ########################################
+## categorize sleeptime, show the distribution of variables(classified into short sleep (<7 h/day), regular sleep (7-8 h/day) and long sleep duration (>8 h/day).)
 Hmisc::describe(df3)
+
 ############### (3) linear regression model ########################################
 ##simple linear regression##
 model1 = lm(df3$SleepHrsNight ~ df3$BMI, data = df3)
@@ -73,71 +86,76 @@ plot(model1, which = 5)
 plot(model1, which = 6)
 par(mfrow = c(1, 1)) # reset
 
-## multiple linear regression##
-m_initial = lm(SleepHrsNight ~ BMI + Age + Gender + factor(Race1), df3)
-summary(m_initial)
-m_knrisk = lm(
-  SleepHrsNight ~ BMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
-    BPSysAve + AlcoholYear + DaysMentHlthBad,
+dummy_b = 1 * (df3$Race1 == "Black")
+dummy_h = 1 * (df3$Race1 == "Hispanic")
+dummy_m = 1 * (df3$Race1 == "Mexican")
+dummy_w = 1 * (df3$Race1 == "White")
+dummy_o = 1 * (df3$Race1 == "Other")
+
+age_quant = quantile(df3$Age)
+df3$AgeC = 0
+df3$AgeC[df3$Age > age_quant[2] & df3$Age <= age_quant[3]] = 1
+df3$AgeC[df3$Age > age_quant[3] & df3$Age <= age_quant[4]] = 2
+df3$AgeC[df3$Age > age_quant[4]] = 3
+
+### multiple linear regression###
+# model_1 add demographic
+m_1 = lm(BMI ~ SleepHrsNight + Age + Gender + factor(Race1), df3)
+summary(m_1)
+
+
+
+## model_2 add known risk factors
+m_2 = lm(
+  BMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
+    DaysPhysHlthBad + PhysActive,
   df3
 )
-summary(m_knrisk)
+summary(m_2)
+
+#LINE
+
+#influential observations
+
+#multicollinearity
+
+
+
+
+
+
+
+
+
+
+
+## model_3 add additional risk factors
+
+m_3 = lm(
+  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+    DaysPhysHlthBad + HealthGen + PhysActive,
+  df3
+)
+summary(m_3)
+
+# model_4 add additional risk factors
 m_full = lm(
-  SleepHrsNight ~ BMI + Age + Gender + factor(Race1) + TotChol + BPDiaAve +
-    BPSysAve + AlcoholYear + DaysMentHlthBad + HomeRooms + SexNumPartnLife +
-    SexNumPartYear + Poverty,
+  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+    DaysPhysHlthBad + HealthGen + PhysActive + SleepHrsNight * Age + SleepHrsNight *
+    Gender + SleepHrsNight * factor(Race1),
   df3
 )
 summary(m_full)
-vif(m_full)
-par(mfrow = c(2, 3)) #read more from ?plot.lm
-plot(m_full, which = 1)
-plot(m_full, which = 2)
-plot(m_full, which = 3)
-plot(m_full, which = 4)
-plot(m_full, which = 5)
-plot(m_full, which = 6)
-par(mfrow = c(1, 1)) # reset
 
-plot(
-  df3$BMI,
-  df3$SleepHrsNight,
-  main = "Scatter Plot with Linear Regression Line",
-  xlab = "X-axis",
-  ylab = "Y-axis"
-)
-
-#log x
-df3$logBMI = log(df3$BMI + 1)
-df3$logSleepHrsNight = log(df3$SleepHrsNight + 1)
-df3$logDaysMentHlthBad = log(df3$DaysMentHlthBad + 1)
-df3$invTotChol = 1 / df3$TotChol
-df3$sqrtDaysMentHlthBad = sqrt(df3$DaysMentHlthBad)
-df3$sqBMI = (df3$BMI - mean(df3$BMI)) ^ 2
-m_logfull_2 = lm(
-  logSleepHrsNight ~ Age + Gender + factor(Race1) + logBMI + invTotChol +
-    BPDiaAve + BPSysAve + AlcoholYear + sqrtDaysMentHlthBad + HomeRooms + SexNumPartnLife +
-    SexNumPartYear + Poverty,
-  df3
-)
-summary(m_logfull_2)
-par(mfrow = c(2, 3)) #read more from ?plot.lm
-plot(m_logfull_2, which = 1)
-plot(m_logfull_2, which = 2)
-plot(m_logfull_2, which = 3)
-plot(m_logfull_2, which = 4)
-plot(m_logfull_2, which = 5)
-plot(m_logfull_2, which = 6)
-par(mfrow = c(1, 1)) # reset
 
 ############### (4) Diagnosis: 10-fold CV ########################################
 
 library(caret)
 splitIndex <-
   createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
-trainData <- df3[splitIndex,]
-testData <- df3[-splitIndex,]
-predictions <- predict(m_logfull_2, newdata = testData)
+trainData <- df3[splitIndex, ]
+testData <- df3[-splitIndex, ]
+predictions <- predict(m_sqfull_1, newdata = testData)
 mse <- mean((testData$SleepHrsNight - predictions) ^ 2)
 control <-
   trainControl(method = "cv", number = 10)  # 10-fold cross-validation
@@ -379,10 +397,15 @@ ggplot() +
   ylab("Externally Studentized Residuals") +
   theme_minimal()
 
+############### (5) General hypothesis test ########################################
+## categorize age
+
+## categorize gender
+
 
 ############### (5) Model Selection ########################################
-step(fit0)
+step(m_full)
 library(olsrr)
 ols_step_forward_p(m_full, penter = 0.1, details = F)
 ols_step_forward_p(m_full, penter = 0.05, details = F)
-ols_mallows_cp(model = m_logfull_2, fullmodel = m_full)  # Mallows' Cp
+ols_mallows_cp(model = m_3, fullmodel = m_full)  # Mallows' Cp
