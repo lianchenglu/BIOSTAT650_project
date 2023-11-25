@@ -81,6 +81,7 @@ Hmisc::describe(df3)
 model1 = lm(df3$BMI ~ df3$SleepHrsNight, data = df3)
 summary(model1)
 
+
 par(mfrow = c(2, 3)) #read more from ?plot.lm
 plot(model1, which = 1)
 plot(model1, which = 2)
