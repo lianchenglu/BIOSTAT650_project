@@ -269,11 +269,11 @@ p44 = ggplot() + geom_point(aes(y = rstudent(m_full), x = m_full$fitted.values))
 grid.arrange(p43, p44, nrow = 2)
 
 
-m_full.3.yhat = m_full.log$fitted.values
-m_full.3.res = m_full.log$residuals
-m_full.3.h = hatvalues(m_full.log)
-m_full.3.r = rstandard(m_full.log)
-m_full.3.rr = rstudent(m_full.log)
+m_full.4.yhat = m_full.log$fitted.values
+m_full.4.res = m_full.log$residuals
+m_full.4.h = hatvalues(m_full.log)
+m_full.4.r = rstandard(m_full.log)
+m_full.4.rr = rstudent(m_full.log)
 
 par(mfrow = c(1, 1))
 hist(m_full.3.res, breaks = 15)
