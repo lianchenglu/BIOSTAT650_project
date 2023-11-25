@@ -4,6 +4,7 @@ set.seed(123)
 library(car)
 library(ggplot2)
 library(olsrr)
+library(lmtest)
 ############### (1) Data cleaning ########################################
 ## select variables
 library(NHANES)
@@ -121,6 +122,9 @@ car::avPlots(m_full)
 residuals <- resid(m_full)
 acf(residuals, main = "Autocorrelation Function of Residuals")
 pacf(residuals, main = "Partial Autocorrelation Function of Residuals")
+
+dw_test <- dwtest(m_full)
+print(dw_test)
 
 #(3)E: constant var: residuals-fitted values; transform for variance-stable...(total: 4 solutions)
 
