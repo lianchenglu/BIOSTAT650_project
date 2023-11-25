@@ -67,27 +67,18 @@ df3 <- df3 %>%
       TRUE ~ NA_integer_  # Default value if none of the conditions are met
     )
   )
-df3 <- df3 %>%
-  mutate(
-    HealthGen = case_when(
-      HealthGen == 'Poor' ~ 1,
-      HealthGen == 'Fair' ~ 2,
-      HealthGen == 'Good' ~ 3,
-      HealthGen == 'Vgood' ~ 4,
-      HealthGen == 'Excellent' ~ 5,
-      TRUE ~ NA_integer_  # Default value if none of the conditions are met
-    )
-  )
-## model_4 add additional risk factors ##
+
+## model_2 add known risk factors ##
 m_full = lm(
-  BMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
-    DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender + SleepHrsNight*factor(Race1),
+  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+    DaysPhysHlthBad + HealthGen + PhysActive + SleepHrsNight * Age + SleepHrsNight *
+    Gender,
   df3
 )
 summary(m_full)
 car::Anova(m_full, type = "III")
 
-########### model 4 diagnosis ###########
+########### model 2 diagnosis ###########
 par(mfrow = c(2, 3)) #read more from ?plot.lm
 plot(m_full, which = 1)
 plot(m_full, which = 2)
@@ -152,7 +143,7 @@ m_full.res[qq.m_full.res]
 
 ############### influential observations  #################
 
-influence4 = data.frame(
+influence2 = data.frame(
   Residual = resid(m_full),
   Rstudent = rstudent(m_full),
   HatDiagH = hat(model.matrix(m_full)),
@@ -162,20 +153,20 @@ influence4 = data.frame(
 )
 # DFFITS
 ols_plot_dffits(m_full)
-influence4[order(abs(influence4$DFFITS), decreasing = T), ] %>% head()
+influence2[order(abs(influence2$DFFITS), decreasing = T), ] %>% head()
 #From the plot above, we can see 2 observations with the largest (magnitude) of DFFITS, observation 879 and 1769 By printing the corresponding values of DFFITS in the output dataset, we can obtain their DFFITS values: 0.5673 for observation 879, 0.5872 for observation 1769
 
 # Cook's D
 ols_plot_cooksd_bar(m_full)
-influence4[order(influence4$COOKsDistance, decreasing = T), ] %>% head()
+influence2[order(influence2$COOKsDistance, decreasing = T), ] %>% head()
 #From the plot above, we can see that the observation 879 and 1769 also have the largest Cook's Distance. By printing the corresponding values of Cook's D in the output dataset, we can obtain their Cook's D values:0.0108 for observation 879, 0.0145 for observation 1769
 
 #leverage
 ols_plot_resid_lev(m_full)
 #high leverage
-influence4[order(influence4$HatDiagH, decreasing = T), ] %>% head()
+influence2[order(influence2$HatDiagH, decreasing = T), ] %>% head()
 #high studentized residual
-influence4[order(influence4$Rstudent, decreasing = T), ] %>% head()
+influence2[order(influence2$Rstudent, decreasing = T), ] %>% head()
 #From the plot above, we can see that the observation 1155 has the largest leverage (0.0368). Observations 1862 has the largest (in magnitude) externally studentized residual (5.9649).
 
 
@@ -184,11 +175,11 @@ influence4[order(influence4$Rstudent, decreasing = T), ] %>% head()
 
 #From (DFFITS), observations 879 and 1769 appear to be influential observations. Observation 1155 has extraordinarily large leverage. Therefore, I choose to remove these 14 observations in the re-fitted mode
 
-rm4.df3 = df3[-c(879, 1769, 1155, 1048, 1769, 1684, 74, 72, 1689, 1311), ]
+rm2.df3 = df3[-c(879, 1769, 1155, 1048, 1769, 1684, 74, 72, 1689, 1311), ]
 rm.m_full =  lm(
-  BMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
-    DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender + SleepHrsNight*factor(Race1),
-  rm4.df3
+  BMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
+    DaysPhysHlthBad + PhysActive,
+  rm2.df3
 )
 ## Before removing these observations, the estimated coefficients are:
 summary(m_full)$coef
@@ -201,7 +192,7 @@ abs((rm.m_full$coefficients - m_full$coefficients) / (m_full$coefficients) * 100
 
 ##################   multicollinearity   ######################
 #Pearson correlations
-var4 = c(
+var2 = c(
   "BMI",
   "SleepHrsNight",
   "Age",
@@ -213,19 +204,15 @@ var4 = c(
   "AlcoholYear",
   "Smoke100",
   "DaysPhysHlthBad",
-  "PhysActive",
-  "Poverty",
-  "UrineFlow1",
-  "DaysMentHlthBad",
-  "HealthGen"
+  "PhysActive"
 )
-newData4 = df3[, var4]
+newData2 = df3[, var2]
 library("corrplot")
 par(mfrow = c(1, 2))
-cormat4 = cor(as.matrix(newData4[, -c(1)], method = "pearson"))
-p.mat4 = cor.mtest(as.matrix(newData4[, -c(1)]))$p
+cormat2 = cor(as.matrix(newData2[, -c(1)], method = "pearson"))
+p.mat2 = cor.mtest(as.matrix(newData2[, -c(1)]))$p
 corrplot(
-  cormat4,
+  cormat2,
   method = "color",
   type = "upper",
   number.cex = 1,
@@ -233,7 +220,7 @@ corrplot(
   addCoef.col = "black",
   tl.col = "black",
   tl.srt = 90,
-  p.mat = p.mat4,
+  p.mat = p.mat2,
   sig.level = 0.05,
   insig = "blank",
 )
@@ -248,35 +235,35 @@ car::vif(m_full)
 # log BMI
 df3$logBMI = log(df3$BMI + 1)
 m_full.log = lm(
-  logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad + DaysPhysHlthBad + factor(HealthGen) + PhysActive +
-    SleepHrsNight*Age+SleepHrsNight*Gender+SleepHrsNight*factor(Race1),
+  logBMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
+    DaysPhysHlthBad + PhysActive,
   df3
 )
-p41.log = ols_plot_resid_lev(m_full.log)
-p42.log = ols_plot_cooksd_bar(m_full.log)
+p21.log = ols_plot_resid_lev(m_full.log)
+p22.log = ols_plot_cooksd_bar(m_full.log)
 library(gridExtra)
-p43.log = ggplot(m_full.log, aes(sample = rstudent(m_full.log))) + geom_qq() + stat_qq_line() +
+p23.log = ggplot(m_full.log, aes(sample = rstudent(m_full.log))) + geom_qq() + stat_qq_line() +
   labs(title = "Q-Q plot")
-p44.log = ggplot() + geom_point(aes(y = rstudent(m_full.log), x = m_full.log$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
+p24.log = ggplot() + geom_point(aes(y = rstudent(m_full.log), x = m_full.log$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
   geom_hline(yintercept = c(-2, 2))
-grid.arrange(p43.log, p44.log, nrow = 2)
+grid.arrange(p23.log, p24.log, nrow = 2)
 
 
-p43 = ggplot(m_full, aes(sample = rstudent(m_full))) + geom_qq() + stat_qq_line() +
+p23 = ggplot(m_full, aes(sample = rstudent(m_full))) + geom_qq() + stat_qq_line() +
   labs(title = "Q-Q plot")
-p44 = ggplot() + geom_point(aes(y = rstudent(m_full), x = m_full$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
+p24 = ggplot() + geom_point(aes(y = rstudent(m_full), x = m_full$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
   geom_hline(yintercept = c(-2, 2))
-grid.arrange(p43, p44, nrow = 2)
+grid.arrange(p23, p24, nrow = 2)
 
 
-m_full.4.yhat = m_full.log$fitted.values
-m_full.4.res = m_full.log$residuals
-m_full.4.h = hatvalues(m_full.log)
-m_full.4.r = rstandard(m_full.log)
-m_full.4.rr = rstudent(m_full.log)
+m_full.3.yhat = m_full.log$fitted.values
+m_full.3.res = m_full.log$residuals
+m_full.3.h = hatvalues(m_full.log)
+m_full.3.r = rstandard(m_full.log)
+m_full.3.rr = rstudent(m_full.log)
 
 par(mfrow = c(1, 1))
-hist(m_full.4.res, breaks = 15)
+hist(m_full.3.res, breaks = 15)
 
 car::avPlots(m_full.log)
 
@@ -319,3 +306,23 @@ ggplot(new_data, aes(x = SleepHrsNight, y = predicted_BMI, group = factor(Age)))
   labs(title = "Interaction between Sleep Hours and Age on BMI",
        x = "Sleep Hours per Night",
        y = "Predicted BMI")
+
+# cross validation
+library(caret)
+splitIndex <-
+  createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
+trainData <- df3[splitIndex, ]
+testData <- df3[-splitIndex, ]
+predictions <- predict(m_full, newdata = testData)
+mse <- mean((testData$SleepHrsNight - predictions) ^ 2)
+control <-
+  trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+cv_model <-
+  train(
+    SleepHrsNight ~ .,
+    data = df3,
+    method = "lm",
+    trControl = control
+  )
+cv_model
+(cv_results <- cv_model$results)
