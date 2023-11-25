@@ -332,5 +332,25 @@ ggplot(new_data, aes(x = SleepHrsNight, y = predicted_BMI, group = factor(Age)))
   labs(title = "Interaction between Sleep Hours and Age on BMI",
        x = "Sleep Hours per Night",
        y = "Predicted BMI")
+
+# cross validation
+library(caret)
+splitIndex <-
+  createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
+trainData <- df3[splitIndex, ]
+testData <- df3[-splitIndex, ]
+predictions <- predict(m_full, newdata = testData)
+mse <- mean((testData$SleepHrsNight - predictions) ^ 2)
+control <-
+  trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+cv_model <-
+  train(
+    SleepHrsNight ~ .,
+    data = df3,
+    method = "lm",
+    trControl = control
+  )
+cv_model
+(cv_results <- cv_model$results)
 ```
 
