@@ -301,6 +301,36 @@ car::avPlots(m_full.log)
 
 car::vif(m_full.log)
 #The VIF from both the models are the same. None of the VIF values are greater than 10. So there are no concerns about collinearity.
+getMode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
 
+new_data <- expand.grid(SleepHrsNight = seq(min(df3$SleepHrsNight), max(df3$SleepHrsNight), length.out = 100),
+                        Age = quantile(df3$Age, probs = c(0.25, 0.5, 0.75)),
+                        Gender = median(df3$Gender, na.rm = TRUE),
+                        Race1 = median(df3$Race1, na.rm = TRUE),
+                        Poverty = median(df3$Poverty, na.rm = TRUE),
+                        TotChol = median(df3$TotChol, na.rm = TRUE),
+                        BPDiaAve = median(df3$BPDiaAve, na.rm = TRUE),
+                        BPSysAve = median(df3$BPSysAve, na.rm = TRUE),
+                        AlcoholYear = median(df3$AlcoholYear, na.rm = TRUE),
+                        Smoke100 = getMode(df3$Smoke100),
+                        UrineFlow1 = median(df3$UrineFlow1, na.rm = TRUE),
+                        DaysMentHlthBad = median(df3$DaysMentHlthBad, na.rm = TRUE),
+                        DaysPhysHlthBad = median(df3$DaysPhysHlthBad, na.rm = TRUE),
+                        HealthGen = getMode(df3$HealthGen),
+                        PhysActive = getMode(df3$PhysActive)
+)
+
+# predict
+new_data$predicted_BMI <- predict(m_full, newdata = new_data)
+# interaction
+library(ggplot2)
+ggplot(new_data, aes(x = SleepHrsNight, y = predicted_BMI, group = factor(Age))) +
+  geom_line(aes(color = factor(Age))) +
+  labs(title = "Interaction between Sleep Hours and Age on BMI",
+       x = "Sleep Hours per Night",
+       y = "Predicted BMI")
 ```
 
