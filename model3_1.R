@@ -267,5 +267,5 @@ car::avPlots(m_3.log)
 #collinearity diagnostics
 
 car::vif(m_3.log)
-#The VIF from both the models are the same. None of the VIF values are greater than 10. So there are no concerns about collinearity.
+#The VIF from both the models are the same. None of the VIF values are greater than 10. So there are no concerns about collinearity
 
