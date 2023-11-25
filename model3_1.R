@@ -132,7 +132,6 @@ ggplot(m_3, aes(x = m_3.yhat, y = m_3.res)) +
        x = "y hat",
        y = "Residuals") +
   theme_minimal()
-#conclusion
 #conclusion: the constant variance assumption is basically not violated. The spread of the residuals appears to be fairly uniform across the range of predicted values, the assumption is more likely to hold
 
 
