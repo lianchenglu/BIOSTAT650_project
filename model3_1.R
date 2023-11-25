@@ -2,6 +2,7 @@ rm(list = ls())
 gc()
 set.seed(123)
 library(car)
+library(olsrr)
 library(ggplot2)
 ############### (1) Data cleaning ########################################
 ## select variables
@@ -67,9 +68,20 @@ df3 <- df3 %>%
     )
   )
 
+df3 <- df3 %>%
+  mutate(
+    HealthGen = case_when(
+      HealthGen == 'Poor' ~ 1,
+      HealthGen == 'Fair' ~ 2,
+      HealthGen == 'Good' ~ 3,
+      HealthGen == 'Vgood' ~ 4,
+      HealthGen == 'Excellent' ~ 5,
+      TRUE ~ NA_integer_  # Default value if none of the conditions are met
+    )
+  )
 ## model_3 add additional risk factors ##
 m_3 = lm(
-  BMI ~ SleepHrsNight +Age + Gender + Race1  + Poverty + TotChol+ BPDiaAve + BPSysAve + AlcoholYear+ Smoke100 + UrineFlow1 + DaysMentHlthBad +DaysPhysHlthBad+HealthGen+PhysActive, df3
+  BMI ~ SleepHrsNight +Age + Gender + factor(Race1)  + Poverty + TotChol+ BPDiaAve + BPSysAve + AlcoholYear+ Smoke100 + UrineFlow1 + DaysMentHlthBad +DaysPhysHlthBad+factor(HealthGen)+PhysActive, df3
 )
 summary(m_3)
 car::Anova(m_3,type="III")
