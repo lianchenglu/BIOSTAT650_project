@@ -192,7 +192,22 @@ abs((rm.m_3$coefficients - m_3$coefficients)/(m_3$coefficients) *100)
 
 ##################   multicollinearity   ######################
 #Pearson correlations
-var3= c("BMI","SleepHrsNight","Age","Gender","Race1","TotChol","BPDiaAve", "BPSysAve","AlcoholYear", "Smoke100","DaysPhysHlthBad","PhysActive", "Poverty", "UrineFlow1", "DaysMentHlthBad", "HealthGen")
+var3= c("BMI",
+        "SleepHrsNight",
+        "Age",
+        "Gender",
+        "Race1",
+        "TotChol",
+        "BPDiaAve",
+        "BPSysAve",
+        "AlcoholYear",
+        "Smoke100",
+        "DaysPhysHlthBad",
+        "PhysActive",
+        "Poverty",
+        "UrineFlow1",
+        "DaysMentHlthBad",
+        "HealthGen")
 
 newData3 = df3[,var3]
 library("corrplot")
@@ -221,7 +236,7 @@ car::vif(m_3)
 ################ using log-transformed BMI  ##################
 # log BMI
 df3$logBMI = log(df3$BMI+1)
-m_3.log= lm(logBMI ~ SleepHrsNight +Age + Gender + Race1  + Poverty + TotChol+ BPDiaAve + BPSysAve + AlcoholYear+ Smoke100 + UrineFlow1 + DaysMentHlthBad +DaysPhysHlthBad+HealthGen+PhysActive, df3)
+m_3.log= lm(logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol+ BPDiaAve + BPSysAve + AlcoholYear+ Smoke100 + UrineFlow1 + DaysMentHlthBad + DaysPhysHlthBad + factor(HealthGen) + PhysActive, df3)
 p31.log = ols_plot_resid_lev(m_3.log)
 p32.log = ols_plot_cooksd_bar(m_3.log)
 library(gridExtra)
