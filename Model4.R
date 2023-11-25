@@ -78,6 +78,7 @@ df3 <- df3 %>%
       TRUE ~ NA_integer_  # Default value if none of the conditions are met
     )
   )
+
 ## model_4 add additional risk factors ##
 m_full = lm(
   BMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
