@@ -276,7 +276,7 @@ m_full.4.r = rstandard(m_full.log)
 m_full.4.rr = rstudent(m_full.log)
 
 par(mfrow = c(1, 1))
-hist(m_full.3.res, breaks = 15)
+hist(m_full.4.res, breaks = 15)
 
 car::avPlots(m_full.log)
 
