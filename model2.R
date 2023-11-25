@@ -4,6 +4,7 @@ set.seed(123)
 library(car)
 library(ggplot2)
 library(olsrr)
+
 ############### (1) Data cleaning ########################################
 ## select variables
 library(NHANES)
