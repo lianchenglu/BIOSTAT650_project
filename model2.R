@@ -158,7 +158,7 @@ influence2[order(abs(influence2$DFFITS), decreasing = T), ] %>% head()
 # Cook's D
 ols_plot_cooksd_bar(m_2)
 influence2[order(influence2$COOKsDistance, decreasing = T), ] %>% head()
-#From the plot above, we can see that the observation 879 and 1769 also have the largest Cook's Distance. By printing the corresponding values of Cook's D in the output dataset, we can obtain their Cook鈥檚 D values:0.0108 for observation 879, 0.0145 for observation 1769
+#From the plot above, we can see that the observation 879 and 1769 also have the largest Cook's Distance. By printing the corresponding values of Cook's D in the output dataset, we can obtain their Cook's D values:0.0108 for observation 879, 0.0145 for observation 1769
 
 #leverage
 ols_plot_resid_lev(m_2)
@@ -169,7 +169,7 @@ influence2[order(influence2$Rstudent, decreasing = T), ] %>% head()
 #From the plot above, we can see that the observation 1155 has the largest leverage (0.0368). Observations 1862 has the largest (in magnitude) externally studentized residual (5.9649).
 
 
-#From the plot above, there is 7 observations(1048,1769,1684, 74, 72, 1689, 1311) located in the intersection areas of both outlier and leverage, which is to say, those observations has both the leverage and the externally studentized residual exceeding their respective thresholds.Due to its large DIFFITS and Cook鈥檚 D, they are potentially influential observations.
+#From the plot above, there is 7 observations(1048,1769,1684, 74, 72, 1689, 1311) located in the intersection areas of both outlier and leverage, which is to say, those observations has both the leverage and the externally studentized residual exceeding their respective thresholds.Due to its large DIFFITS and Cook's D, they are potentially influential observations.
 #The thresholds for the externally studentized residual are -2 and 2, i.e. 2 in magnitude. The thresholds for the leverage of the R default is 0.011
 
 #From (DFFITS), observations 879 and 1769 appear to be influential observations. Observation 1155 has extraordinarily large leverage. Therefore, I choose to remove these 14 observations in the re-fitted mode
