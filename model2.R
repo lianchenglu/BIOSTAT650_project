@@ -114,7 +114,7 @@ pacf(residuals, main = "Partial Autocorrelation Function of Residuals")
 
 library(lmtest)
 # Perform Durbin-Watson test
-dw_test_result <- dwtest(m_1, alternative = "two.sided")
+dw_test_result <- dwtest(m_2, alternative = "two.sided")
 
 # Print the Durbin-Watson test result
 print(dw_test_result)
