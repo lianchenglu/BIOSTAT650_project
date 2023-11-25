@@ -124,6 +124,7 @@ pacf(residuals, main = "Partial Autocorrelation Function of Residuals")
 
 dw_test <- dwtest(m_3)
 print(dw_test)
+
 #(3)E: constant var: residuals-fitted values; transform for variance-stable...(total: 4 solutions)
 
 car::residualPlots(m_3, type = "response")
