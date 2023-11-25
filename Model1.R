@@ -90,11 +90,6 @@ plot(model1, which = 5)
 plot(model1, which = 6)
 par(mfrow = c(1, 1)) # reset
 
-dummy_b=1*(Race1=="Black")
-dummy_h=1*(Race1=="Hispanic")
-dummy_m=1*(Race1=="Mexican")
-dummy_w=1*(Race1=="White")
-dummy_o=1*(Race1=="Other")
 
 age_quant = quantile(df3$Age)
 df3$AgeC = 0
