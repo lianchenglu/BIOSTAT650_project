@@ -81,6 +81,7 @@ Hmisc::describe(df3)
 model1 = lm(df3$BMI ~ df3$SleepHrsNight, data = df3)
 summary(model1)
 
+
 par(mfrow = c(2, 3)) #read more from ?plot.lm
 plot(model1, which = 1)
 plot(model1, which = 2)
@@ -90,11 +91,6 @@ plot(model1, which = 5)
 plot(model1, which = 6)
 par(mfrow = c(1, 1)) # reset
 
-dummy_b=1*(Race1=="Black")
-dummy_h=1*(Race1=="Hispanic")
-dummy_m=1*(Race1=="Mexican")
-dummy_w=1*(Race1=="White")
-dummy_o=1*(Race1=="Other")
 
 age_quant = quantile(df3$Age)
 df3$AgeC = 0
@@ -114,7 +110,7 @@ car::Anova(m_1,type="III")
 
 
 # age centered + quadratic term of age
-df3$Age.c=Age=median(Age,na.rm=T)
+df3$Age.c=Age=median(df3$Age,na.rm=T)
 m_1.2= lm(BMI ~ SleepHrsNight + Age.c+I(Age.c^2) + Gender + factor(Race1), df3)
 
 
@@ -224,6 +220,7 @@ influence = data.frame(Residual = resid(m_1), Rstudent = rstudent(m_1),
                        CovRatio = covratio(m_1), DFFITS = dffits(m_1),
                        COOKsDistance = cooks.distance(m_1))
 # DFFITS
+library(olsrr)
 ols_plot_dffits(m_1)
 influence[order(abs(influence$DFFITS),decreasing = T),] %>% head()
 #From the plot above, we can see 2 observations with the largest (magnitude) of DFFITS, observation 879 and 1862 By printing the corresponding values of DFFITS in the output dataset, we can obtain their DFFITS values: 0.4147 for observation 879, 0.4028 for observation 1862.
@@ -327,6 +324,7 @@ plot(x=df3$SleepHrsNight,y=m_1.log$residuals,main="residuals vs SleepHrsNight in
 #After looking at residuals from models using the log-transformed (natural log scale) BMI adjusted for other predictors, I agree that we should use log-transformed NIHScore because there is less of a discernible pattern in the residual plots. The residuals are also a lot less skewed once we log-transform this variable. Furthermore, there are fewer observations with extreme values on the QQ plot so the normality assumption appears to hold.
 
 #collinearity diagnostics
+library(Hmisc)
 var= c("BMI","SleepHrsNight","Age","Gender","Race1","logBMI")
 newData.log = df3[,var]
 par(mfrow = c(1, 2))
