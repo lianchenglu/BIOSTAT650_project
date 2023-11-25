@@ -81,7 +81,7 @@ df3 <- df3 %>%
 ## model_4 add additional risk factors ##
 m_full = lm(
   BMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
-    DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender + SleepHrsNight*factor(Race1),
+    DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender,
   df3
 )
 summary(m_full)
@@ -187,7 +187,7 @@ influence4[order(influence4$Rstudent, decreasing = T), ] %>% head()
 rm4.df3 = df3[-c(879, 1769, 1155, 1048, 1769, 1684, 74, 72, 1689, 1311), ]
 rm.m_full =  lm(
   BMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
-    DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender + SleepHrsNight*factor(Race1),
+    DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender,
   rm4.df3
 )
 ## Before removing these observations, the estimated coefficients are:
@@ -249,7 +249,7 @@ car::vif(m_full)
 df3$logBMI = log(df3$BMI + 1)
 m_full.log = lm(
   logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad + DaysPhysHlthBad + factor(HealthGen) + PhysActive +
-    SleepHrsNight*Age+SleepHrsNight*Gender+SleepHrsNight*factor(Race1),
+    SleepHrsNight*Age+SleepHrsNight*Gender,
   df3
 )
 p41.log = ols_plot_resid_lev(m_full.log)
