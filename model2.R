@@ -158,7 +158,7 @@ influence2[order(abs(influence2$DFFITS), decreasing = T), ] %>% head()
 # Cook's D
 ols_plot_cooksd_bar(m_2)
 influence2[order(influence2$COOKsDistance, decreasing = T), ] %>% head()
-#From the plot above, we can see that the observation 879 and 1769 also have the largest Cook鈥檚 Distance. By printing the corresponding values of Cook鈥檚 D in the output dataset, we can obtain their Cook鈥檚 D values:0.0108 for observation 879, 0.0145 for observation 1769
+#From the plot above, we can see that the observation 879 and 1769 also have the largest Cook's Distance. By printing the corresponding values of Cook's D in the output dataset, we can obtain their Cook鈥檚 D values:0.0108 for observation 879, 0.0145 for observation 1769
 
 #leverage
 ols_plot_resid_lev(m_2)
