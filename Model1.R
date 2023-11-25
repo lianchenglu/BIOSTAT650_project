@@ -186,6 +186,20 @@ residuals <- resid(m_1)
 acf(residuals, main = "Autocorrelation Function of Residuals")
 pacf(residuals, main = "Partial Autocorrelation Function of Residuals")
 
+# Assuming m_1 is your linear regression model
+# Assuming df3 is your data frame
+
+library(lmtest)
+
+# Perform Durbin-Watson test
+dw_test_result <- dwtest(m_1, alternative = "two.sided")
+
+# Print the Durbin-Watson test result
+print(dw_test_result)
+
+
+
+
 #(3)E: constant var: residuals-fitted values; transform for variance-stable...(total: 4 solutions)
 
 car::residualPlots(m_1,type="response")
@@ -199,6 +213,31 @@ ggplot(m_1, aes(x = m_1.yhat, y = m_1.res)) +
        y = "Residuals") +
   theme_minimal()
 #conclusion: the constant variance assumption is basically not violated. The spread of the residuals appears to be fairly uniform across the range of predicted values, the assumption is more likely to hold
+
+# Perform the Breusch-Pagan test for heteroscedasticity
+bp_test <- bptest(m_1)
+
+# Print the test result
+print(bp_test)
+
+# Check for heteroscedasticity
+if (bp_test$p.value < 0.05) {
+  # Heteroscedasticity is detected
+  # Implement WLS
+
+  # Calculate squared residuals
+  residuals_squared <- residuals(m_1)^2
+
+  # Fit a new model with weights based on squared residuals
+  wls_model <- lm(SleepHrsNight ~ BMI + Age + Gender + factor(Race1), df3, weights = 1/residuals_squared)
+
+  # Summarize the WLS model
+  summary(wls_model)
+} else {
+  # No significant evidence of heteroscedasticity
+  # Continue with the original model
+  summary(m_1)
+}
 
 
 #(4)Normality: residuals freq - residuals (4 plots: his, box, Q-Q, shapiro); transform
@@ -296,7 +335,6 @@ p13.log = ggplot(m_1.log, aes(sample = rstudent(m_1.log))) + geom_qq() + stat_qq
 p14.log = ggplot() + geom_point(aes(y = rstudent(m_1.log), x = m_1.log$fitted.values )) + labs(x = "Predicted Value", y = "Jacknife Residuals") +geom_hline(yintercept = c(-2,2))
 grid.arrange(p13.log,p14.log, nrow=2)
 
-
 p13 = ggplot(m_1, aes(sample = rstudent(m_1))) + geom_qq() + stat_qq_line() +labs(title="Q-Q plot")
 p14 = ggplot() + geom_point(aes(y = rstudent(m_1), x = m_1$fitted.values )) + labs(x = "Predicted Value", y = "Jacknife Residuals") +geom_hline(yintercept = c(-2,2))
 grid.arrange(p13,p14, nrow=2)
@@ -320,6 +358,27 @@ plot(x=df3$SleepHrsNight,y=m_1$residuals,main="residuals vs SleepHrsNight in m1"
 plot(x=df3$SleepHrsNight,y=m_1.log$fitted.values,main="Yhat vs SleepHrsNight in m1.3")
 plot(x=df3$BMI,y=m_1.log$fitted.values,main="Yhat vs Y in m1.3")
 plot(x=df3$SleepHrsNight,y=m_1.log$residuals,main="residuals vs SleepHrsNight in m1.3")
+
+car::residualPlots(m_1.log,type="response")
+plot(m_1.log, which = 1)
+#or
+ggplot(m_1.log, aes(x = m_1.log.yhat, y = m_1.log.res)) +
+  geom_point(color = "blue", alpha = 0.8) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  labs(title = "constant variance assumption",
+       x = "y hat",
+       y = "Residuals") +
+  theme_minimal()
+
+
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(m_1.log, which = 1)
+plot(m_1.log, which = 2)
+plot(m_1.log, which = 3)
+plot(m_1.log, which = 4)
+plot(m_1.log, which = 5)
+plot(m_1.log, which = 6)
+par(mfrow = c(1, 1)) # reset
 
 #After looking at residuals from models using the log-transformed (natural log scale) BMI adjusted for other predictors, I agree that we should use log-transformed NIHScore because there is less of a discernible pattern in the residual plots. The residuals are also a lot less skewed once we log-transform this variable. Furthermore, there are fewer observations with extreme values on the QQ plot so the normality assumption appears to hold.
 
@@ -350,7 +409,7 @@ car::vif(m_1.log)
 
 ## model_2 add known risk factors ##
 m_2 = lm(
-  BMI ~ SleepHrsNight +Age + Gender + Race1 + TotChol+ BPDiaAve + BPSysAve + AlcoholYear+ Smoke100 +DaysPhysHlthBad+PhysActive, df3
+  BMI ~ SleepHrsNight +Age + Gender + factor(Race1) + TotChol+ BPDiaAve + BPSysAve + AlcoholYear+ Smoke100 +DaysPhysHlthBad+PhysActive, df3
 )
 summary(m_2)
 

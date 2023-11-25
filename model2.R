@@ -112,6 +112,13 @@ residuals <- resid(m_2)
 acf(residuals, main = "Autocorrelation Function of Residuals")
 pacf(residuals, main = "Partial Autocorrelation Function of Residuals")
 
+library(lmtest)
+# Perform Durbin-Watson test
+dw_test_result <- dwtest(m_1, alternative = "two.sided")
+
+# Print the Durbin-Watson test result
+print(dw_test_result)
+
 #(3)E: constant var: residuals-fitted values; transform for variance-stable...(total: 4 solutions)
 library(ggplot2)
 car::residualPlots(m_2, type = "response")
