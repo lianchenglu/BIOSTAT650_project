@@ -71,7 +71,7 @@ df3 <- df3 %>%
 
 ## model_2 add known risk factors ##
 m_2 = lm(
-  BMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
+  BMI ~ SleepHrsNight + Age + Gender + factor(Race1) + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
     DaysPhysHlthBad + PhysActive,
   df3
 )
@@ -113,7 +113,7 @@ acf(residuals, main = "Autocorrelation Function of Residuals")
 pacf(residuals, main = "Partial Autocorrelation Function of Residuals")
 
 #(3)E: constant var: residuals-fitted values; transform for variance-stable...(total: 4 solutions)
-
+library(ggplot2)
 car::residualPlots(m_2, type = "response")
 plot(m_2, which = 1)
 #or
