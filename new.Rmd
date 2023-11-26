@@ -19,6 +19,8 @@ set.seed(123)
 ## select variables
 library(NHANES)
 library(car)
+library(naniar)
+library(ggplot2)
 df0 <- NHANES
 df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60,]
 # colSums(is.na(df)) / nrow(df)
@@ -52,6 +54,9 @@ df2 <- df %>% select(
   HealthGen,
   SexAge
 )
+
+gg_miss_var(df2)
+vis_miss(df2) + theme(axis.text.x = element_text(size = 7))
 
 df3 <- na.omit(df2)
 #df3$SleepHrsNight <- df3$SleepHrsNight * 60
