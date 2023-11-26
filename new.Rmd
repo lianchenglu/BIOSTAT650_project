@@ -102,7 +102,7 @@ ggsave("picture/mean.pdf", plot = p, device = "pdf")
 (p <- ggplot(desc_stats_long[desc_stats_long$Statistic == "sd", ], aes(x = rownames(desc_stats), y = Value)) +
   geom_bar(stat = "identity") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x = "Variable", y = "sd", title = "sd of Each Variable in selected data"))
+  labs(x = "Variable", y = "SD", title = "Standard Deviation of Each Variable in selected data"))
 ggsave("picture/sd.pdf", plot = p, device = "pdf")
 ```
 #Raw data normality analysis
