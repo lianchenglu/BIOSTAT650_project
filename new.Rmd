@@ -1,0 +1,630 @@
+---
+title: "new"
+author: "Liancheng"
+date: "2023-11-26"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# (1) Data cleaning
+
+```{r}
+rm(list = ls())
+gc()
+set.seed(123)
+############### (1) Data cleaning ########################################
+## select variables
+library(NHANES)
+library(car)
+library(naniar)
+library(ggplot2)
+df0 <- NHANES
+df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60,]
+# colSums(is.na(df)) / nrow(df)
+df <- df[, which(colSums(is.na(df)) / nrow(df) < 0.3)]
+# exclude duplication
+df <- df[!duplicated(df),]
+names(df)
+# df$BPSysAve
+library(dplyr)
+
+df2 <- df %>% select(
+  SleepHrsNight,
+  BMI,
+  DirectChol,
+  Age,
+  Gender,
+  Race1,
+  TotChol,
+  BPDiaAve,
+  BPSysAve,
+  AlcoholYear,
+  Poverty,
+  SexNumPartnLife,
+  SexNumPartYear,
+  DaysMentHlthBad,
+  UrineFlow1,
+  PhysActive,
+  DaysPhysHlthBad,
+  Smoke100,
+  Depressed,
+  HealthGen,
+  SexAge
+)
+
+gg_miss_var(df2)
+vis_miss(df2) + theme(axis.text.x = element_text(size = 7))
+
+df3 <- na.omit(df2)
+#df3$SleepHrsNight <- df3$SleepHrsNight * 60
+#df3 <- df3[, -which(names(df3) %in% "SleepHrsNight")]
+# cor(df3$BPSysAve,df3$BPDiaAve)
+psych::describe(df3)
+# psych::pairs.panels(df3)
+hist(df3$SleepHrsNight)
+# colSums(is.na(df2)) / nrow(df2)
+fit0 <-
+  lm(SleepHrsNight ~ .,
+     data = df3)
+#data type
+df3$Gender <- ifelse(df3$Gender == "male", 0, 1)
+df3 <- df3 %>%
+  mutate(
+    Race1 = case_when(
+      Race1 == 'Black' ~ 1,
+      Race1 == 'Hispanic' ~ 2,
+      Race1 == 'Mexican' ~ 3,
+      Race1 == 'White' ~ 4,
+      Race1 == 'Other' ~ 5,
+      TRUE ~ NA_integer_  # Default value if none of the conditions are met
+    )
+  )
+```
+#Raw data normality analysis
+```{r}
+# Assuming 'df3' is your dataframe from the NHANES dataset.
+# Load necessary libraries
+library(e1071)
+library(ggplot2)
+library(rlang)
+
+# Function to perform normality analysis on a given column
+perform_normality_analysis <- function(data, column_x, column_y) {
+  # Check if the columns are numeric
+  if(!is.numeric(data[[column_x]]) || !is.numeric(data[[column_y]])) {
+    return(paste("One or both columns are not numeric. Skipping."))
+  }
+
+  # Shapiro-Wilk Test for Y column
+  shapiro_test <- shapiro.test(data[[column_y]])
+  
+  # Skewness and Kurtosis for Y column
+  skewness_value <- skewness(data[[column_y]])
+  kurtosis_value <- kurtosis(data[[column_y]])
+  
+  # Q-Q Plot for Y column
+  qqplot <- ggplot(data, aes_string(sample = column_y)) +
+            stat_qq() +
+            stat_qq_line() +
+            ggtitle(paste("Q-Q Plot for", column_y))
+  
+  # Histogram with Normal Distribution Fit for Y column
+  hist_plot <- ggplot(data, aes_string(x = column_y)) +
+               geom_histogram(aes(y = ..density..), binwidth = 1, fill = "blue", alpha = 0.5) +
+               geom_density(color = "red", size = 1) +
+               theme_bw() +
+               xlab(paste(column_y, "(Value)")) +
+               ylab("Density") +
+               ggtitle(paste("Histogram with Normal Distribution Fit for", column_y))
+  
+  # Scatter Plot with Jittering and Alpha adjustment
+  scatter_plot <- ggplot(df3, aes_string(x = "SleepHrsNight", y = "BMI")) +
+                  geom_jitter(alpha = 0.5, width = 0.2) + # Add jittering and alpha adjustment
+                  geom_smooth(method = "lm", color = "red") +
+                  theme_bw() +
+                  ggtitle("Scatter Plot with Regression Line for SleepHrsNight vs BMI")
+
+  # Boxplot for Y column
+  boxplot <- ggplot(data, aes_string(y = column_y)) +
+             geom_boxplot() +
+             theme_bw() +
+             ggtitle(paste("Boxplot for", column_y))
+
+  # Density Plot for Y column
+  density_plot <- ggplot(data, aes_string(x = column_y)) +
+                  geom_density(fill = "blue", alpha = 0.5) +
+                  theme_bw() +
+                  ggtitle(paste("Density Plot for", column_y))
+
+  # Output results
+  list(
+    Column_Y = column_y,
+    Shapiro_Test = shapiro_test,
+    Skewness = skewness_value,
+    Kurtosis = kurtosis_value,
+    QQPlot = qqplot,
+    Histogram = hist_plot,
+    ScatterPlot = scatter_plot,
+    Boxplot = boxplot,
+    DensityPlot = density_plot
+  )
+}
+
+# Analyze BMI with SleepHrsNight as X-axis
+bmi_sleep_analysis <- perform_normality_analysis(df3, "SleepHrsNight", "BMI")
+
+# Display the results
+print(bmi_sleep_analysis$Shapiro_Test)
+print(paste("Skewness:", bmi_sleep_analysis$Skewness))
+print(paste("Kurtosis:", bmi_sleep_analysis$Kurtosis))
+print(bmi_sleep_analysis$QQPlot)
+print(bmi_sleep_analysis$Histogram)
+print(bmi_sleep_analysis$ScatterPlot)
+print(bmi_sleep_analysis$Boxplot)
+print(bmi_sleep_analysis$DensityPlot)
+
+```
+#basic characteristics
+```{r}
+# Assuming 'df3' is your dataframe.
+
+# Load necessary library
+library(dplyr)
+
+# Function to get basic characteristics of a given column
+get_basic_characteristics <- function(data, column) {
+  # Ensure the column is numeric
+  if(!is.numeric(data[[column]])) {
+    return(data.frame(Variable = column, Mean = NA, Median = NA, SD = NA, Min = NA, Max = NA, Q1 = NA, Q3 = NA, check.names = FALSE))
+  }
+  
+  # Calculate basic characteristics
+  characteristics <- data %>% 
+                     summarise(
+                       Mean = mean(.data[[column]], na.rm = TRUE),
+                       Median = median(.data[[column]], na.rm = TRUE),
+                       SD = sd(.data[[column]], na.rm = TRUE),
+                       Min = min(.data[[column]], na.rm = TRUE),
+                       Max = max(.data[[column]], na.rm = TRUE),
+                       Q1 = quantile(.data[[column]], 0.25, na.rm = TRUE),
+                       Q3 = quantile(.data[[column]], 0.75, na.rm = TRUE)
+                     ) %>%
+                     mutate(Variable = column) %>%
+                     select(Variable, everything())
+  
+  # Return the results
+  return(characteristics)
+}
+
+# List of columns to analyze
+columns_to_analyze <- c("SleepHrsNight", "BMI", "DirectChol", "Age", "Gender", "Race1", "TotChol", "BPDiaAve", "BPSysAve", "AlcoholYear", "Poverty", "SexNumPartnLife", "SexNumPartYear", "DaysMentHlthBad", "UrineFlow1", "PhysActive", "DaysPhysHlthBad", "Smoke100", "Depressed", "HealthGen", "SexAge")
+
+# Apply the function to each column and combine results
+combined_characteristics <- lapply(columns_to_analyze, function(col) get_basic_characteristics(df3, col)) %>%
+                            bind_rows()
+
+# Display the combined basic characteristics
+print(combined_characteristics)
+
+```
+
+
+# (2) Baseline characteristics
+
+```{r}
+Hmisc::describe(df3)
+```
+
+
+
+# (3) linear regression model
+
+```{r}
+##simple linear regression##
+model1 = lm(df3$SleepHrsNight ~ df3$BMI, data = df3)
+summary(model1)
+
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(model1, which = 1)
+plot(model1, which = 2)
+plot(model1, which = 3)
+plot(model1, which = 4)
+plot(model1, which = 5)
+plot(model1, which = 6)
+par(mfrow = c(1, 1)) # reset
+
+dummy_b = 1 * (df3$Race1 == "Black")
+dummy_h = 1 * (df3$Race1 == "Hispanic")
+dummy_m = 1 * (df3$Race1 == "Mexican")
+dummy_w = 1 * (df3$Race1 == "White")
+dummy_o = 1 * (df3$Race1 == "Other")
+
+age_quant = quantile(df3$Age)
+df3$AgeC = 0
+df3$AgeC[df3$Age > age_quant[2] & df3$Age <= age_quant[3]] = 1
+df3$AgeC[df3$Age > age_quant[3] & df3$Age <= age_quant[4]] = 2
+df3$AgeC[df3$Age > age_quant[4]] = 3
+
+### multiple linear regression###
+# model_1 add demographic
+m_1 = lm(BMI ~ SleepHrsNight + Age + Gender + factor(Race1), df3)
+summary(m_1)
+
+
+
+## model_2 add known risk factors
+m_2 = lm(
+  BMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
+    DaysPhysHlthBad + PhysActive,
+  df3
+)
+summary(m_2)
+
+#LINE
+
+#influential observations
+
+#multicollinearity
+
+vif(m_1)
+vif(m_2)
+
+
+
+
+
+
+
+
+## model_3 add additional risk factors
+
+m_3 = lm(
+  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+    DaysPhysHlthBad + HealthGen + PhysActive,
+  df3
+)
+summary(m_3)
+vif(m_3)
+
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(m_3, which = 1)
+plot(m_3, which = 2)
+plot(m_3, which = 3)
+plot(m_3, which = 4)
+plot(m_3, which = 5)
+plot(m_3, which = 6)
+par(mfrow = c(1, 1)) # reset
+
+# model_4 add additional risk factors
+m_full = lm(
+  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+    DaysPhysHlthBad + HealthGen + PhysActive + SleepHrsNight * Age + SleepHrsNight *
+    Gender,
+  df3
+)
+summary(m_full)
+vif(m_full)
+
+par(mfrow = c(2, 3)) #read more from ?plot.lm
+plot(m_full, which = 1)
+plot(m_full, which = 2)
+plot(m_full, which = 3)
+plot(m_full, which = 4)
+plot(m_full, which = 5)
+plot(m_full, which = 6)
+par(mfrow = c(1, 1)) # reset
+
+getMode <- function(v) {
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+new_data <- expand.grid(SleepHrsNight = seq(min(df3$SleepHrsNight), max(df3$SleepHrsNight), length.out = 100),
+                        Age = quantile(df3$Age, probs = c(0.25, 0.5, 0.75)),
+                        Gender = median(df3$Gender, na.rm = TRUE),
+                        Race1 = median(df3$Race1, na.rm = TRUE),
+                        Poverty = median(df3$Poverty, na.rm = TRUE),
+                        TotChol = median(df3$TotChol, na.rm = TRUE),
+                        BPDiaAve = median(df3$BPDiaAve, na.rm = TRUE),
+                        BPSysAve = median(df3$BPSysAve, na.rm = TRUE),
+                        AlcoholYear = median(df3$AlcoholYear, na.rm = TRUE),
+                        Smoke100 = getMode(df3$Smoke100),
+                        UrineFlow1 = median(df3$UrineFlow1, na.rm = TRUE),
+                        DaysMentHlthBad = median(df3$DaysMentHlthBad, na.rm = TRUE),
+                        DaysPhysHlthBad = median(df3$DaysPhysHlthBad, na.rm = TRUE),
+                        HealthGen = getMode(df3$HealthGen),
+                        PhysActive = getMode(df3$PhysActive)
+)
+
+# predict
+new_data$predicted_BMI <- predict(m_full, newdata = new_data)
+# interaction
+library(ggplot2)
+ggplot(new_data, aes(x = SleepHrsNight, y = predicted_BMI, group = factor(Age))) +
+  geom_line(aes(color = factor(Age))) +
+  labs(title = "Interaction between Sleep Hours and Age on BMI",
+       x = "Sleep Hours per Night",
+       y = "Predicted BMI")
+```
+
+# (4) Diagnosis: 10-fold CV
+
+```{r}
+library(caret)
+splitIndex <-
+  createDataPartition(df3$SleepHrsNight, p = 0.7, list = FALSE)
+trainData <- df3[splitIndex, ]
+testData <- df3[-splitIndex, ]
+predictions <- predict(m_full, newdata = testData)
+mse <- mean((testData$SleepHrsNight - predictions) ^ 2)
+control <-
+  trainControl(method = "cv", number = 10)  # 10-fold cross-validation
+cv_model <-
+  train(
+    SleepHrsNight ~ .,
+    data = df3,
+    method = "lm",
+    trControl = control
+  )
+cv_model
+(cv_results <- cv_model$results)
+```
+
+# (4) Diagnosis: Normality Assumption
+
+```{r, fig.width=10,fig.height=20}
+library(ggplot2)
+library(patchwork)
+# Initializes an empty patchwork object
+plot_list <- list()
+
+# Draw a histogram for each numeric variable (except Race1 and Gender) and add it to the list
+for (var in names(df3)) {
+  if (is.numeric(df3[[var]]) && !(var %in% c("Race1", "Gender"))) {
+    p <- ggplot(df3, aes(x = .data[[var]])) +
+      geom_histogram(
+        aes(y = after_stat(density)),
+        binwidth = 1,
+        fill = "blue",
+        color = "black"
+      ) +
+      geom_density(col = "red") +
+      ggtitle(paste("Histogram and Density for", var)) +
+      xlab(var) +
+      ylab("Density")
+    plot_list[[length(plot_list) + 1]] <- p
+  }
+}
+
+# Use patchwork to put all the charts together
+combined_plot <- wrap_plots(plot_list, ncol = 2)
+print(combined_plot)
+```
+
+
+```{r}
+df3 <- data.frame(df3)
+library(dplyr)
+# Shapiro-Wilk normality test is performed for each numerical variable in df3
+results <- sapply(df3, function(x) {
+  if (is.numeric(x)) {
+    shapiro_test <- shapiro.test(x)
+    return(c(shapiro_test$statistic, shapiro_test$p.value))
+  } else {
+    return(c(NA, NA))
+  }
+})
+# Convert the result to a data box and name the column
+results_df <- as.data.frame(t(results))
+names(results_df) <- c("W", "p.value")
+# Add a variable name as a new column
+results_df$Variable <- rownames(results_df)
+# Rearrange the order of columns
+results_df <- results_df[, c("Variable", "W", "p.value")]
+# Calculate the corrected P-value (for example, using Bonferroni correction)
+results_df$p.adjusted <-
+  p.adjust(results_df$p.value, method = "bonferroni")
+print(results_df)
+```
+
+# Standardized residuals, Studentized residuals
+
+```{r}
+# Regular residuals
+residual_1 <- m_full$residuals
+
+# Standardized residuals
+residual_2 <- rstandard(m_full)
+
+# Studentized residuals
+residual_3 <- rstudent(m_full)
+
+# Externally studentized residuals
+# Note: Externally studentized residuals are the same as studentized residuals in most cases
+residual_4 <- rstudent(m_full)
+
+# Creating a data frame to summarize these residuals
+residual_summary <- data.frame(
+  Residuals = c("Regular", "Standardized", "Studentized", "Externally Studentized"),
+  Mean = c(mean(residual_1), mean(residual_2), mean(residual_3), mean(residual_4)),
+  SD = c(sd(residual_1), sd(residual_2), sd(residual_3), sd(residual_4)),
+  Min = c(min(residual_1), min(residual_2), min(residual_3), min(residual_4)),
+  Max = c(max(residual_1), max(residual_2), max(residual_3), max(residual_4))
+)
+
+# Display the summary
+print(residual_summary)
+
+
+# Load necessary library
+library(ggplot2)
+
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
+
+# Calculate standardized and studentized residuals
+residual_2 <- rstandard(m_full)
+residual_3 <- rstudent(m_full)
+
+# Calculate leverage values
+leverage_values <- hatvalues(m_full)
+
+# Create a data frame for plotting
+plot_data <- data.frame(
+  Standardized_Residuals = residual_2,
+  Difference = residual_3 - residual_2,
+  Leverage = leverage_values
+)
+
+# Create the plot
+ggplot(plot_data, aes(x = Standardized_Residuals, y = Difference)) +
+  geom_point(aes(size = Leverage)) +
+  ggtitle("Difference between Studentized and Standardized Residuals vs. Standardized Residuals") +
+  xlab("Standardized Residuals") +
+  ylab("Difference between Studentized and Standardized Residuals")
+
+# Display the plot
+print(ggplot)
+
+
+# Load necessary library
+library(ggplot2)
+
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
+
+# Calculate studentized and externally studentized residuals
+residual_3 <- rstudent(m_full)
+residual_4 <- rstudent(m_full)  # Externally studentized residuals are typically the same as studentized residuals
+
+# Regular residuals
+residual_1 <- m_full$residuals
+
+# Create a data frame for plotting
+plot_data <- data.frame(
+  Studentized_Residuals = residual_3,
+  Difference = residual_4 - residual_3,
+  Residual_Squared = residual_1^2
+)
+
+# Create the plot
+ggplot(plot_data, aes(x = Studentized_Residuals, y = Difference)) +
+  geom_point(aes(size = Residual_Squared)) +
+  ggtitle("Difference between Externally Studentized and Studentized Residuals vs. Studentized Residuals") +
+  xlab("Studentized Residuals") +
+  ylab("Difference between Externally Studentized and Studentized Residuals")
+
+# Display the plot
+print(ggplot)
+
+# Load necessary library
+library(ggplot2)
+
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
+
+# Calculate regular residuals
+residual_1 <- m_full$residuals
+
+# Get predicted values from the model
+predicted_values <- predict(m_full)
+
+# Create the plot
+ggplot() +
+  geom_point(aes(x = predicted_values, y = residual_1)) +
+  ggtitle("Residuals vs. Predicted Values") +
+  xlab("Predicted Values") +
+  ylab("Residuals") +
+  theme_minimal()
+
+# Display the plot
+print(ggplot)
+
+# Load necessary library
+library(ggplot2)
+
+# Assuming m_full is your linear model
+# m_full <- lm(SleepMinNight ~ ., data = df3)
+
+# Calculate different types of residuals
+residual_2 <- rstandard(m_full)
+residual_3 <- rstudent(m_full)
+residual_4 <- rstudent(m_full)  # Externally studentized residuals
+
+# Get predicted values from the model
+predicted_values <- predict(m_full)
+
+# Plot for Standardized Residuals
+ggplot() +
+  geom_point(aes(x = predicted_values, y = residual_2)) +
+  ggtitle("Standardized Residuals vs. Predicted Values") +
+  xlab("Predicted Values") +
+  ylab("Standardized Residuals") +
+  theme_minimal()
+
+# Plot for Studentized Residuals
+ggplot() +
+  geom_point(aes(x = predicted_values, y = residual_3)) +
+  ggtitle("Studentized Residuals vs. Predicted Values") +
+  xlab("Predicted Values") +
+  ylab("Studentized Residuals") +
+  theme_minimal()
+
+# Plot for Externally Studentized Residuals
+ggplot() +
+  geom_point(aes(x = predicted_values, y = residual_4)) +
+  ggtitle("Externally Studentized Residuals vs. Predicted Values") +
+  xlab("Predicted Values") +
+  ylab("Externally Studentized Residuals") +
+  theme_minimal()
+
+```
+
+# (5) Model Selection
+
+```{r}
+step(m_full)
+library(olsrr)
+ols_step_forward_p(m_full, penter = 0.1, details = F)
+ols_step_forward_p(m_full, penter = 0.05, details = F)
+ols_mallows_cp(model = m_3, fullmodel = m_full)  # Mallows' Cp
+```
+#general hypothesis test
+```{r}
+# Load the required libraries
+library(dplyr)
+library(car)
+library(emmeans)
+
+# Assuming your dataframe is df3
+# Categorizing Age
+df3 <- df3 %>%
+  mutate(
+    Age_Category = case_when(
+      Age >= 18 & Age < 30 ~ "18-29",
+      Age >= 30 & Age < 40 ~ "30-39",
+      Age >= 40 & Age < 50 ~ "40-49",
+      Age >= 50 & Age < 60 ~ "50-59",
+      TRUE ~ NA_character_  # For cases not in the 18 to 60 age range
+    ),
+    Gender = as.factor(Gender),  # Ensure Gender is a factor type
+    Race1 = as.factor(Race1)     # Ensure Race1 is a factor type
+  )
+
+# Update the model using categorical variables
+m_full_updated <- lm(SleepHrsNight ~ Age_Category + Gender + Race1, data = df3)
+
+# Overall hypothesis test
+anova_results_updated <- Anova(m_full_updated, type="III")
+summary(anova_results_updated)
+
+# Post-hoc comparisons using emmeans
+emmeans_results_updated <- emmeans(m_full_updated, specs = pairwise ~ Age_Category + Gender + Race1)
+summary(emmeans_results_updated)
+
+```
+
+
