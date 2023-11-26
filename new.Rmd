@@ -50,8 +50,10 @@ df2 <- df %>% select(
   HealthGen
 )
 
-gg_miss_var(df2)
-vis_miss(df2) + theme(axis.text.x = element_text(size = 7))
+(p <- gg_miss_var(df2))
+ggsave("picture/miss1.pdf", plot = p, device = "pdf")
+(p <- vis_miss(df2) + theme(axis.text.x = element_text(size = 7)))
+ggsave("picture/miss2.pdf", plot = p, device = "pdf")
 
 df3 <- na.omit(df2)
 #df3$SleepHrsNight <- df3$SleepHrsNight * 60
@@ -90,15 +92,18 @@ desc_stats <- psych::describe(df3)
 desc_stats_long <- melt(desc_stats, measure.vars = colnames(desc_stats), variable.name = "Statistic", value.name = "Value")
 
 # Corrected ggplot2 visual code
-ggplot(desc_stats_long[desc_stats_long$Statistic == "mean", ], aes(x = rownames(desc_stats), y = Value)) +
+(p <- ggplot(desc_stats_long[desc_stats_long$Statistic == "mean", ], aes(x = rownames(desc_stats), y = Value)) +
   geom_bar(stat = "identity") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x = "Variable", y = "Mean", title = "Mean of Each Variable in selected data")
+  labs(x = "Variable", y = "Mean", title = "Mean of Each Variable in selected data"))
 
-ggplot(desc_stats_long[desc_stats_long$Statistic == "sd", ], aes(x = rownames(desc_stats), y = Value)) +
+ggsave("picture/mean.pdf", plot = p, device = "pdf")
+
+(p <- ggplot(desc_stats_long[desc_stats_long$Statistic == "sd", ], aes(x = rownames(desc_stats), y = Value)) +
   geom_bar(stat = "identity") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  labs(x = "Variable", y = "sd", title = "sd of Each Variable in selected data")
+  labs(x = "Variable", y = "sd", title = "sd of Each Variable in selected data"))
+ggsave("picture/sd.pdf", plot = p, device = "pdf")
 ```
 #Raw data normality analysis
 ```{r}
