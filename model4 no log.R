@@ -20,7 +20,7 @@ library(dplyr)
 df2 <- df %>% select(
   SleepHrsNight,
   BMI,
-  DirectChol,
+  Gender,
   Age,
   Race1,
   TotChol,
