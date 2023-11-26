@@ -119,6 +119,8 @@ Bi_vars = c("Gender", "Race1", "Smoke100", "HealthGen", "PhysActive")
 Bi_complete = subset(data_complete, select = Bi_vars)
 Bi_incomplete = subset(data_incomplete, select = Bi_vars)
 Bi_data = subset(data2, select = c(Bi_vars, "Incomplete"))
+
+
 # Count # of complete cases for each binary variable seperately in all complete cases dataset and incomplete cases dataset
 Bi_Number_complete = apply(Bi_complete, 2, function(x) sum(complete.cases(x)))
 Bi_Number_incomplete = apply(Bi_incomplete, 2, function(x) sum(complete.cases(x)))
@@ -134,7 +136,7 @@ format(Bi_summary, nsmall = 2) ## only keep the first two decimals
 
 ## Categorical variables
 # Prepare data
-Cat_vars = c("Age_4Cat", "NIHScore_Cat")
+Cat_vars = c("Age_4Cat", "BMI_cat")
 Cat_complete = subset(data_complete, select = Cat_vars)
 Cat_incomplete = subset(data_incomplete, select = Cat_vars)
 Cat_data = subset(data2, select = c(Cat_vars, "Incomplete"))
