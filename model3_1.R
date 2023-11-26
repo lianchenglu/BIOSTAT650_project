@@ -21,7 +21,6 @@ library(dplyr)
 df2 <- df %>% select(
   SleepHrsNight,
   BMI,
-  DirectChol,
   Age,
   Gender,
   Race1,
@@ -30,16 +29,12 @@ df2 <- df %>% select(
   BPSysAve,
   AlcoholYear,
   Poverty,
-  SexNumPartnLife,
-  SexNumPartYear,
   DaysMentHlthBad,
   UrineFlow1,
   PhysActive,
   DaysPhysHlthBad,
   Smoke100,
-  Depressed,
-  HealthGen,
-  SexAge
+  HealthGen
 )
 
 df3 <- na.omit(df2)
