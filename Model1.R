@@ -19,7 +19,6 @@ library(dplyr)
 df2 <- df %>% select(
   SleepHrsNight,
   BMI,
-  DirectChol,
   Age,
   Gender,
   Race1,
@@ -28,19 +27,15 @@ df2 <- df %>% select(
   BPSysAve,
   AlcoholYear,
   Poverty,
-  SexNumPartnLife,
-  SexNumPartYear,
   DaysMentHlthBad,
   UrineFlow1,
   PhysActive,
   DaysPhysHlthBad,
   Smoke100,
-  Depressed,
-  HealthGen,
-  SexAge
+  HealthGen
 )
-
 df3 <- na.omit(df2)
+
 #df3$SleepHrsNight <- df3$SleepHrsNight * 60
 #df3 <- df3[, -which(names(df3) %in% "SleepHrsNight")]
 # cor(df3$BPSysAve,df3$BPDiaAve)
