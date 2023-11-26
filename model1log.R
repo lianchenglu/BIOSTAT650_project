@@ -35,6 +35,7 @@ df2 <- df %>% select(
   HealthGen
 )
 
+
 df3 <- na.omit(df2)
 #df3$SleepHrsNight <- df3$SleepHrsNight * 60
 #df3 <- df3[, -which(names(df3) %in% "SleepHrsNight")]
