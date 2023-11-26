@@ -123,7 +123,7 @@ library(lmtest)
 bptest(m_2)
 epsilon1<-residuals(m_2)
 weights1 <- 1/abs(epsilon1)
-m_2.2<-lm(SleepHrsNight ~ logBMI + Age + Gender + factor(Race1), df3,weights = weights1)
+m_2.2<-lm(logBMI ~ SleepHrsNight + Age + Gender + factor(Race1), df3,weights = weights1)
 summary(m_2.2)
 
 
