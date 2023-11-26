@@ -260,50 +260,6 @@ corrplot(
 car::vif(m_full)
 #From the VIF values in the output above, once again we do not observe any potential collinearity issues. In fact, the VIF values are fairly small: none of the values exceed 10.
 
-################ using log-transformed BMI  ##################
-# log BMI
-df3$logBMI = log(df3$BMI + 1)
-m_full.log = lm(
-  logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad + DaysPhysHlthBad + factor(HealthGen) + PhysActive +
-    SleepHrsNight*Age+SleepHrsNight*Gender,
-  df3
-)
-p41.log = ols_plot_resid_lev(m_full.log)
-p42.log = ols_plot_cooksd_bar(m_full.log)
-library(gridExtra)
-p43.log = ggplot(m_full.log, aes(sample = rstudent(m_full.log))) + geom_qq() + stat_qq_line() +
-  labs(title = "Q-Q plot")
-p44.log = ggplot() + geom_point(aes(y = rstudent(m_full.log), x = m_full.log$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
-  geom_hline(yintercept = c(-2, 2))
-grid.arrange(p43.log, p44.log, nrow = 2)
-
-
-p43 = ggplot(m_full, aes(sample = rstudent(m_full))) + geom_qq() + stat_qq_line() +
-  labs(title = "Q-Q plot")
-p44 = ggplot() + geom_point(aes(y = rstudent(m_full), x = m_full$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
-  geom_hline(yintercept = c(-2, 2))
-grid.arrange(p43, p44, nrow = 2)
-
-
-m_full.3.yhat = m_full.log$fitted.values
-m_full.3.res = m_full.log$residuals
-m_full.3.h = hatvalues(m_full.log)
-m_full.3.r = rstandard(m_full.log)
-m_full.3.rr = rstudent(m_full.log)
-
-par(mfrow = c(1, 1))
-hist(m_full.3.res, breaks = 15)
-
-car::avPlots(m_full.log)
-
-
-#After looking at residuals from models using the log-transformed (natural log scale) BMI adjusted for other predictors, I agree that we should use log-transformed NIHScore because there is less of a discernible pattern in the residual plots. The residuals are also a lot less skewed once we log-transform this variable. Furthermore, there are fewer observations with extreme values on the QQ plot so the normality assumption appears to hold.
-
-#collinearity diagnostics
-
-car::vif(m_full.log)
-#The VIF from both the models are the same. None of the VIF values are greater than 10. So there are no concerns about collinearity.
-
 
 getMode <- function(v) {
   uniqv <- unique(v)
