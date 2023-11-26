@@ -68,10 +68,10 @@ df3 <- df3 %>%
       TRUE ~ NA_integer_  # Default value if none of the conditions are met
     )
   )
-
+df3$logBMI = log(df3$BMI+1)
 ## model_2 add known risk factors ##
 m_2 = lm(
-  BMI ~ SleepHrsNight + Age + Gender + factor(Race1) + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
+  logBMI ~ SleepHrsNight + Age + Gender + factor(Race1) + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
     DaysPhysHlthBad + PhysActive,
   df3
 )
@@ -118,6 +118,14 @@ dw_test_result <- dwtest(m_2, alternative = "two.sided")
 
 # Print the Durbin-Watson test result
 print(dw_test_result)
+
+library(lmtest)
+bptest(m_2)
+epsilon1<-residuals(m_2)
+weights1 <- 1/abs(epsilon1)
+m_2.2<-lm(SleepHrsNight ~ logBMI + Age + Gender + factor(Race1), df3,weights = weights1)
+summary(m_2.2)
+
 
 #(3)E: constant var: residuals-fitted values; transform for variance-stable...(total: 4 solutions)
 library(ggplot2)
@@ -184,7 +192,7 @@ influence2[order(influence2$Rstudent, decreasing = T), ] %>% head()
 
 rm2.df3 = df3[-c(879, 1769, 1155, 1048, 1769, 1684, 74, 72, 1689, 1311), ]
 rm.m_2 =  lm(
-  BMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
+  logBMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
     DaysPhysHlthBad + PhysActive,
   rm2.df3
 )
@@ -200,7 +208,7 @@ abs((rm.m_2$coefficients - m_2$coefficients) / (m_2$coefficients) * 100)
 ##################   multicollinearity   ######################
 #Pearson correlations
 var2 = c(
-  "BMI",
+  "logBMI",
   "SleepHrsNight",
   "Age",
   "Gender",
@@ -238,46 +246,3 @@ corrplot(
 car::vif(m_2)
 #From the VIF values in the output above, once again we do not observe any potential collinearity issues. In fact, the VIF values are fairly small: none of the values exceed 10.
 
-################ using log-transformed BMI  ##################
-# log BMI
-df3$logBMI = log(df3$BMI + 1)
-m_2.log = lm(
-  logBMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
-    DaysPhysHlthBad + PhysActive,
-  df3
-)
-p21.log = ols_plot_resid_lev(m_2.log)
-p22.log = ols_plot_cooksd_bar(m_2.log)
-library(gridExtra)
-p23.log = ggplot(m_2.log, aes(sample = rstudent(m_2.log))) + geom_qq() + stat_qq_line() +
-  labs(title = "Q-Q plot")
-p24.log = ggplot() + geom_point(aes(y = rstudent(m_2.log), x = m_2.log$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
-  geom_hline(yintercept = c(-2, 2))
-grid.arrange(p23.log, p24.log, nrow = 2)
-
-
-p23 = ggplot(m_2, aes(sample = rstudent(m_2))) + geom_qq() + stat_qq_line() +
-  labs(title = "Q-Q plot")
-p24 = ggplot() + geom_point(aes(y = rstudent(m_2), x = m_2$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
-  geom_hline(yintercept = c(-2, 2))
-grid.arrange(p23, p24, nrow = 2)
-
-
-m_2.3.yhat = m_2.log$fitted.values
-m_2.3.res = m_2.log$residuals
-m_2.3.h = hatvalues(m_2.log)
-m_2.3.r = rstandard(m_2.log)
-m_2.3.rr = rstudent(m_2.log)
-
-par(mfrow = c(1, 1))
-hist(m_2.3.res, breaks = 15)
-
-car::avPlots(m_2.log)
-
-
-#After looking at residuals from models using the log-transformed (natural log scale) BMI adjusted for other predictors, I agree that we should use log-transformed NIHScore because there is less of a discernible pattern in the residual plots. The residuals are also a lot less skewed once we log-transform this variable. Furthermore, there are fewer observations with extreme values on the QQ plot so the normality assumption appears to hold.
-
-#collinearity diagnostics
-
-car::vif(m_2.log)
-#The VIF from both the models are the same. None of the VIF values are greater than 10. So there are no concerns about collinearity.
