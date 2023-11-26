@@ -73,6 +73,7 @@ m_2 = lm(
 summary(m_2)
 car::Anova(m_2, type = "III")
 
+
 ########### model 2 diagnosis ###########
 par(mfrow = c(2, 3)) #read more from ?plot.lm
 plot(m_2, which = 1)
