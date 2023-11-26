@@ -82,6 +82,28 @@ df3 <- df3 %>%
       TRUE ~ NA_integer_  # Default value if none of the conditions are met
     )
   )
+
+library(psych)
+library(ggplot2)
+library(reshape2)
+
+# psych::describe
+desc_stats <- psych::describe(df3)
+
+# Transform the data format for easy visualization
+# Use the measure.vars parameter to specify the columns to melt
+desc_stats_long <- melt(desc_stats, measure.vars = colnames(desc_stats), variable.name = "Statistic", value.name = "Value")
+
+# Corrected ggplot2 visual code
+ggplot(desc_stats_long[desc_stats_long$Statistic == "mean", ], aes(x = rownames(desc_stats), y = Value)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = "Variable", y = "Mean", title = "Mean of Each Variable in selected data")
+
+ggplot(desc_stats_long[desc_stats_long$Statistic == "sd", ], aes(x = rownames(desc_stats), y = Value)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = "Variable", y = "sd", title = "sd of Each Variable in selected data")
 ```
 #Raw data normality analysis
 ```{r}
