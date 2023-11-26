@@ -258,6 +258,7 @@ m_3.log = lm(
 )
 p31.log = ols_plot_resid_lev(m_3.log)
 p32.log = ols_plot_cooksd_bar(m_3.log)
+
 library(gridExtra)
 p33.log = ggplot(m_3.log, aes(sample = rstudent(m_3.log))) + geom_qq() + stat_qq_line() +
   labs(title = "Q-Q plot")
