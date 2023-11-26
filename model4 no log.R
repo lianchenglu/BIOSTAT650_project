@@ -66,8 +66,7 @@ df3 <- df3 %>%
 ## model_2 add known risk factors ##
 m_full = lm(
   BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
-    DaysPhysHlthBad + HealthGen + PhysActive + SleepHrsNight * Age + SleepHrsNight *
-    Gender,
+    DaysPhysHlthBad + HealthGen + PhysActive,
   df3
 )
 summary(m_full)
