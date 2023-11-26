@@ -48,7 +48,7 @@ data2$Incomplete = as.factor(data2$Incomplete)
 data2$Age_4Cat = cut(data2$Age, c(20, 40, 60, max(data2$Age, na.rm = T)), right=T, labels=c(0:2))
 
 ## b) Create “BMI_cat” with 3 levels (0/1/2/3): 18, 25, 30
-data2$BMI_cat = cut(data2$BMI, c(18, 25, 30, max(data2$BMI, na.rm = T)), right=F, labels=c(0:2))
+data2$BMI_cat = cut(data2$BMI, c( 20, 40, 60, max(data2$BMI, na.rm = T)), right=F, labels=c(0:2))
 
 ## (c) Create a new dataset with only complete data; Create another new dataset with only incomplete data ################
 data_complete = subset(data2, data2$Incomplete == 0)
@@ -128,7 +128,8 @@ Bi_Number_incomplete = apply(Bi_incomplete, 2, function(x) sum(complete.cases(x)
 Bi_prop_complete = sapply(1:length(Bi_vars), function(x) prop.table(table(Bi_complete[,x]))[2])
 Bi_prop_incomplete = sapply(1:length(Bi_vars), function(x) prop.table(table(Bi_incomplete[,x]))[2])
 # Get p-values from χ2 tests
-Bi_P_value = sapply(1:length(Bi_vars), function(x) chisq.test(table(Bi_data[,x], Bi_data$Incomplete), correct = F)$p.value)
+
+Bi_P_value = sapply(Bi_vars, function(x) chisq.test(table(Bi_data[[x]], Bi_data$Incomplete), correct = FALSE)$p.value)
 # Generate the summary table used to fill in Table1
 Bi_summary = data.frame(cbind(Bi_Number_complete, Bi_prop_complete, Bi_Number_incomplete,
                               Bi_prop_incomplete, Bi_P_value))
@@ -147,7 +148,11 @@ Cat_Number_incomplete = apply(Cat_incomplete, 2, function(x) sum(complete.cases(
 Cat_prop_complete = t(apply(Cat_complete, 2, function(x) prop.table(table(x))))
 Cat_prop_incomplete = t(apply(Cat_incomplete, 2, function(x) prop.table(table(x))))
 # Get p-values from χ2 tests
-Cat_P_value = sapply(1:length(Cat_vars), function(x) chisq.test(table(Cat_data[,x], Cat_data$Incomplete), correct = F)$p.value)
+
+Cat_P_value = sapply(Cat_vars, function(x) chisq.test(table(Cat_data[[x]], Cat_data$Incomplete), correct = FALSE)$p.value)
+
+
+
 # Generate the summary table used to fill in Table1
 Cat_summary = data.frame(cbind(Cat_Number_complete, Cat_prop_complete,
                                Cat_Number_incomplete,
