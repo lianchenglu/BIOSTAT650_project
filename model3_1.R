@@ -81,8 +81,9 @@ df3 <- df3 %>%
     )
   )
 ## model_3 add additional risk factors ##
+df3$logBMI = log(df3$BMI + 1)
 m_3 = lm(
-  BMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+  logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
     DaysPhysHlthBad + factor(HealthGen) + PhysActive,
   df3
 )
@@ -190,7 +191,7 @@ influence3[order(influence3$Rstudent, decreasing = T), ] %>% head()
 
 rm3.df3 = df3[-c(879, 1769, 1155, 1048, 1769, 1684, 74, 72, 1689, 1311), ]
 rm.m_3 =  lm(
-  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+  logBMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
     DaysPhysHlthBad + HealthGen + PhysActive,
   rm3.df3
 )
@@ -248,47 +249,3 @@ corrplot(
 # collinearity diagnostics (VIF)
 car::vif(m_3)
 #From the VIF values in the output above, once again we do not observe any potential collinearity issues. In fact, the VIF values are fairly small: none of the values exceed 10.
-
-################ using log-transformed BMI  ##################
-# log BMI
-df3$logBMI = log(df3$BMI + 1)
-m_3.log = lm(
-  logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad + DaysPhysHlthBad + factor(HealthGen) + PhysActive,
-  df3
-)
-p31.log = ols_plot_resid_lev(m_3.log)
-p32.log = ols_plot_cooksd_bar(m_3.log)
-
-library(gridExtra)
-p33.log = ggplot(m_3.log, aes(sample = rstudent(m_3.log))) + geom_qq() + stat_qq_line() +
-  labs(title = "Q-Q plot")
-p34.log = ggplot() + geom_point(aes(y = rstudent(m_3.log), x = m_3.log$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
-  geom_hline(yintercept = c(-2, 2))
-grid.arrange(p33.log, p34.log, nrow = 2)
-
-
-p33 = ggplot(m_3, aes(sample = rstudent(m_3))) + geom_qq() + stat_qq_line() +
-  labs(title = "Q-Q plot")
-p34 = ggplot() + geom_point(aes(y = rstudent(m_3), x = m_3$fitted.values)) + labs(x = "Predicted Value", y = "Jacknife Residuals") +
-  geom_hline(yintercept = c(-2, 2))
-grid.arrange(p33, p34, nrow = 2)
-
-
-m_3.3.yhat = m_3.log$fitted.values
-m_3.3.res = m_3.log$residuals
-m_3.3.h = hatvalues(m_3.log)
-m_3.3.r = rstandard(m_3.log)
-m_3.3.rr = rstudent(m_3.log)
-
-par(mfrow = c(1, 1))
-hist(m_3.3.res, breaks = 15)
-
-car::avPlots(m_3.log)
-
-
-#After looking at residuals from models using the log-transformed (natural log scale) BMI adjusted for other predictors, I agree that we should use log-transformed NIHScore because there is less of a discernible pattern in the residual plots. The residuals are also a lot less skewed once we log-transform this variable. Furthermore, there are fewer observations with extreme values on the QQ plot so the normality assumption appears to hold.
-
-#collinearity diagnostics
-
-car::vif(m_3.log)
-#The VIF from both the models are the same. None of the VIF values are greater than 10. So there are no concerns about collinearity.
