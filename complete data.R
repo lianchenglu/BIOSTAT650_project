@@ -181,8 +181,6 @@ Cat_prop_complete = t(apply(Cat_complete, 2, function(x) prop.table(table(x))))
 Cat_prop_incomplete = t(apply(Cat_incomplete, 2, function(x) prop.table(table(x))))
 # Get p-values from χ2 tests
 
-
-
 Cat_P_value = sapply(1:length(Cat_vars), function(x) chisq.test(table(Cat_data[[Cat_vars[x]]], Cat_data$Incomplete), correct = F)$p.value)
 
 
