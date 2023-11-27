@@ -222,6 +222,7 @@ var4 = c(
   "DaysMentHlthBad",
   "HealthGen"
 )
+
 newData4 = df3[, var4]
 library("corrplot")
 par(mfrow = c(1, 2))
