@@ -30,6 +30,34 @@ data2 <- df %>% select(
 )
 
 ### "CurrentSmoker", "HiChol", "Htn", "R_E", "Sex" are binary variables, so set them as factors
+
+#data type
+data2$Gender <- ifelse(data2$Gender == "male", 0, 1)
+data2$Smoke100 <- ifelse(data2$Smoke100 == "No", 0, 1)
+data2$PhysActive <- ifelse(data2$PhysActive == "No", 0, 1)
+data2 <- data2 %>%
+  mutate(
+    Race1 = case_when(
+      Race1 == 'Black' ~ 1,
+      Race1 == 'Hispanic' ~ 2,
+      Race1 == 'Mexican' ~ 3,
+      Race1 == 'White' ~ 4,
+      Race1 == 'Other' ~ 5,
+      TRUE ~ NA_integer_  # Default value if none of the conditions are met
+    )
+  )
+data2 <- data2 %>%
+  mutate(
+    HealthGen = case_when(
+      HealthGen == 'Poor' ~ 1,
+      HealthGen == 'Fair' ~ 2,
+      HealthGen == 'Good' ~ 3,
+      HealthGen == 'Vgood' ~ 4,
+      HealthGen == 'Excellent' ~ 5,
+      TRUE ~ NA_integer_  # Default value if none of the conditions are met
+    )
+  )
+
 data2$PhysActive = as.factor(data2$PhysActive)
 data2$Smoke100 = as.factor(data2$Smoke100)
 data2$HealthGen = as.factor(data2$HealthGen)
@@ -87,6 +115,10 @@ Cont_vars = c( "BMI",
                "UrineFlow1",
                "DaysMentHlthBad"
                )
+
+
+
+
 Cont_complete = subset(data_complete, select = Cont_vars)
 Cont_incomplete = subset(data_incomplete, select = Cont_vars)
 Cont_incomplete_numeric <- as.data.frame(lapply(Cont_incomplete, as.numeric))
@@ -115,7 +147,7 @@ format(Cont_summary, nsmall = 2) ## only keep the first two decimals
 ## Categorical/binary variables: get proportion and p-values from χ2 tests
 ## Binary variables
 # Prepare data
-Bi_vars = c("Gender", "Race1", "Smoke100", "HealthGen", "PhysActive")
+Bi_vars = c("Gender", "Smoke100",  "PhysActive")
 Bi_complete = subset(data_complete, select = Bi_vars)
 Bi_incomplete = subset(data_incomplete, select = Bi_vars)
 Bi_data = subset(data2, select = c(Bi_vars, "Incomplete"))
@@ -137,7 +169,7 @@ format(Bi_summary, nsmall = 2) ## only keep the first two decimals
 
 ## Categorical variables
 # Prepare data
-Cat_vars = c("Age_4Cat", "BMI_cat")
+Cat_vars = c("HealthGen", "Race1")
 Cat_complete = subset(data_complete, select = Cat_vars)
 Cat_incomplete = subset(data_incomplete, select = Cat_vars)
 Cat_data = subset(data2, select = c(Cat_vars, "Incomplete"))
@@ -149,8 +181,9 @@ Cat_prop_complete = t(apply(Cat_complete, 2, function(x) prop.table(table(x))))
 Cat_prop_incomplete = t(apply(Cat_incomplete, 2, function(x) prop.table(table(x))))
 # Get p-values from χ2 tests
 
-Cat_P_value = sapply(Cat_vars, function(x) chisq.test(table(Cat_data[[x]], Cat_data$Incomplete), correct = FALSE)$p.value)
 
+
+Cat_P_value = sapply(1:length(Cat_vars), function(x) chisq.test(table(Cat_data[[Cat_vars[x]]], Cat_data$Incomplete), correct = F)$p.value)
 
 
 # Generate the summary table used to fill in Table1
