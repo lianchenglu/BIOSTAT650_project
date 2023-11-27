@@ -102,22 +102,15 @@ high_bound_diff_f <- f_diff + 1.96 * se_f
 Cont_vars = c( "BMI",
                "SleepHrsNight",
                "Age",
-
-
                "TotChol",
                "BPDiaAve",
                "BPSysAve",
                "AlcoholYear",
-
                "DaysPhysHlthBad",
-
                "Poverty",
                "UrineFlow1",
                "DaysMentHlthBad"
                )
-
-
-
 
 Cont_complete = subset(data_complete, select = Cont_vars)
 Cont_incomplete = subset(data_incomplete, select = Cont_vars)
