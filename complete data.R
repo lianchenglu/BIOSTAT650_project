@@ -184,3 +184,4 @@ Cat_summary = data.frame(cbind(Cat_Number_complete, Cat_prop_complete,
                                Cat_prop_incomplete, Cat_P_value), check.names = F)
 format(Cat_summary, nsmall = 2) ## only keep the first two decimals
 
+
