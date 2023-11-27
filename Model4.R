@@ -77,11 +77,19 @@ df3 <- df3 %>%
 
 ## model_4 add additional risk factors ##
 df3$logBMI = log(df3$BMI + 1)
+#m_full = lm(
+#  logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+#    DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender,
+#  df3
+#)
+
 m_full = lm(
   logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
-    DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender,
+    DaysPhysHlthBad + factor(HealthGen) + PhysActive,
   df3
 )
+
+
 summary(m_full)
 car::Anova(m_full, type = "III")
 
@@ -188,7 +196,7 @@ influence4[order(influence4$Rstudent, decreasing = T), ] %>% head()
 rm4.df3 = df3[-c(879, 1769, 1155, 1048, 1769, 1684, 74, 72, 1689, 1311), ]
 rm.m_full =  lm(
   logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
-    DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender,
+    DaysPhysHlthBad + factor(HealthGen) + PhysActive ,
   rm4.df3
 )
 ## Before removing these observations, the estimated coefficients are:
