@@ -8,6 +8,7 @@ df0 <- NHANES
 df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60,]
 df <- df[!duplicated(df),]
 
+
 ############### (1) Data cleaning ########################################
 ### Create a subset with only varaibles of interest: Age, Comorbidity1, CurrentSmoker, Depression, Fatalism, HiChol, Htn, NIHScore, Optimism, Pessimism, R_E, Sex, Spirituality
 data2 <- df %>% select(
