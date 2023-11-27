@@ -4,6 +4,7 @@
 
 ### Read data ##################
 library(NHANES)
+library(dplyr)
 df0 <- NHANES
 df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60,]
 df <- df[!duplicated(df),]
