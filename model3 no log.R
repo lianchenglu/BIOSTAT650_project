@@ -2,8 +2,9 @@ rm(list = ls())
 gc()
 set.seed(123)
 library(car)
-library(ggplot2)
 library(olsrr)
+library(ggplot2)
+library(lmtest)
 ############### (1) Data cleaning ########################################
 ## select variables
 library(NHANES)
@@ -20,8 +21,8 @@ library(dplyr)
 df2 <- df %>% select(
   SleepHrsNight,
   BMI,
-  Gender,
   Age,
+  Gender,
   Race1,
   TotChol,
   BPDiaAve,
@@ -33,7 +34,7 @@ df2 <- df %>% select(
   PhysActive,
   DaysPhysHlthBad,
   Smoke100,
-  HealthGen,
+  HealthGen
 )
 
 df3 <- na.omit(df2)
@@ -63,33 +64,44 @@ df3 <- df3 %>%
     )
   )
 
-## model_2 add known risk factors ##
-m_full = lm(
-  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
-    DaysPhysHlthBad + HealthGen + PhysActive,
+df3 <- df3 %>%
+  mutate(
+    HealthGen = case_when(
+      HealthGen == 'Poor' ~ 1,
+      HealthGen == 'Fair' ~ 2,
+      HealthGen == 'Good' ~ 3,
+      HealthGen == 'Vgood' ~ 4,
+      HealthGen == 'Excellent' ~ 5,
+      TRUE ~ NA_integer_  # Default value if none of the conditions are met
+    )
+  )
+## model_3 add additional risk factors ##
+m_3 = lm(
+  BMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+    DaysPhysHlthBad + factor(HealthGen) + PhysActive,
   df3
 )
-summary(m_full)
-car::Anova(m_full, type = "III")
+summary(m_3)
+car::Anova(m_3, type = "III")
 
-########### model 2 diagnosis ###########
+########### model 3 diagnosis ###########
 par(mfrow = c(2, 3)) #read more from ?plot.lm
-plot(m_full, which = 1)
-plot(m_full, which = 2)
-plot(m_full, which = 3)
-plot(m_full, which = 4)
-plot(m_full, which = 5)
-plot(m_full, which = 6)
+plot(m_3, which = 1)
+plot(m_3, which = 2)
+plot(m_3, which = 3)
+plot(m_3, which = 4)
+plot(m_3, which = 5)
+plot(m_3, which = 6)
 par(mfrow = c(1, 1)) # reset
 
-m_full.yhat = m_full$fitted.values
-m_full.res = m_full$residuals
-m_full.h = hatvalues(m_full)
-m_full.r = rstandard(m_full)
-m_full.rr = rstudent(m_full)
+m_3.yhat = m_3$fitted.values
+m_3.res = m_3$residuals
+m_3.h = hatvalues(m_3)
+m_3.r = rstandard(m_3)
+m_3.rr = rstudent(m_3)
 #which subject is most outlying with respect to the x space
-Hmisc::describe(m_full.h)
-m_full.h[which.max(m_full.h)]
+Hmisc::describe(m_3.h)
+m_3.h[which.max(m_3.h)]
 
 
 ###################### Assumption:LINE ##############################
@@ -97,21 +109,23 @@ m_full.h[which.max(m_full.h)]
 #(1)Linear: 2 approaches
 
 # partial regression plots
-car::avPlots(m_full)
-
+car::avPlots(m_3)
 
 #(2)Independence:
 
-residuals <- resid(m_full)
+residuals <- resid(m_3)
 acf(residuals, main = "Autocorrelation Function of Residuals")
 pacf(residuals, main = "Partial Autocorrelation Function of Residuals")
 
+dw_test <- dwtest(m_3)
+print(dw_test)
+
 #(3)E: constant var: residuals-fitted values; transform for variance-stable...(total: 4 solutions)
 
-car::residualPlots(m_full, type = "response")
-plot(m_full, which = 1)
+car::residualPlots(m_3, type = "response")
+plot(m_3, which = 1)
 #or
-ggplot(m_full, aes(x = m_full.yhat, y = m_full.res)) +
+ggplot(m_3, aes(x = m_3.yhat, y = m_3.res)) +
   geom_point(color = "blue", alpha = 0.8) +
   geom_hline(yintercept = 0,
              linetype = "dashed",
@@ -126,67 +140,67 @@ ggplot(m_full, aes(x = m_full.yhat, y = m_full.res)) +
 #(4)Normality: residuals freq - residuals (4 plots: his, box, Q-Q, shapiro); transform
 
 #exam quartiles of the residuals
-Hmisc::describe(m_full.res)
-Hmisc::describe(m_full.res)$counts[c(".25", ".50", ".75")] #not symmetric
+Hmisc::describe(m_3.res)
+Hmisc::describe(m_3.res)$counts[c(".25", ".50", ".75")] #not symmetric
 #histogram
 par(mfrow = c(1, 1))
-hist(m_full.res, breaks = 15)
+hist(m_3.res, breaks = 15)
 # Q-Q plot
-qq.m_full.res = car::qqPlot(m_full.res)
-m_full.res[qq.m_full.res]
+qq.m_3.res = car::qqPlot(m_3.res)
+m_3.res[qq.m_3.res]
 
 ############### influential observations  #################
 
-influence2 = data.frame(
-  Residual = resid(m_full),
-  Rstudent = rstudent(m_full),
-  HatDiagH = hat(model.matrix(m_full)),
-  CovRatio = covratio(m_full),
-  DFFITS = dffits(m_full),
-  COOKsDistance = cooks.distance(m_full)
+influence3 = data.frame(
+  Residual = resid(m_3),
+  Rstudent = rstudent(m_3),
+  HatDiagH = hat(model.matrix(m_3)),
+  CovRatio = covratio(m_3),
+  DFFITS = dffits(m_3),
+  COOKsDistance = cooks.distance(m_3)
 )
 # DFFITS
-ols_plot_dffits(m_full)
-influence2[order(abs(influence2$DFFITS), decreasing = T), ] %>% head()
+ols_plot_dffits(m_3)
+influence3[order(abs(influence3$DFFITS), decreasing = T), ] %>% head()
 #From the plot above, we can see 2 observations with the largest (magnitude) of DFFITS, observation 879 and 1769 By printing the corresponding values of DFFITS in the output dataset, we can obtain their DFFITS values: 0.5673 for observation 879, 0.5872 for observation 1769
 
 # Cook's D
-ols_plot_cooksd_bar(m_full)
-influence2[order(influence2$COOKsDistance, decreasing = T), ] %>% head()
-#From the plot above, we can see that the observation 879 and 1769 also have the largest Cook's Distance. By printing the corresponding values of Cook's D in the output dataset, we can obtain their Cook's D values:0.0108 for observation 879, 0.0145 for observation 1769
+ols_plot_cooksd_bar(m_3)
+influence3[order(influence3$COOKsDistance, decreasing = T), ] %>% head()
+#From the plot above, we can see that the observation 879 and 1769 also have the largest Cook’s Distance. By printing the corresponding values of Cook’s D in the output dataset, we can obtain their Cook’s D values:0.0108 for observation 879, 0.0145 for observation 1769
 
 #leverage
-ols_plot_resid_lev(m_full)
+ols_plot_resid_lev(m_3)
 #high leverage
-influence2[order(influence2$HatDiagH, decreasing = T), ] %>% head()
+influence3[order(influence3$HatDiagH, decreasing = T), ] %>% head()
 #high studentized residual
-influence2[order(influence2$Rstudent, decreasing = T), ] %>% head()
+influence3[order(influence3$Rstudent, decreasing = T), ] %>% head()
 #From the plot above, we can see that the observation 1155 has the largest leverage (0.0368). Observations 1862 has the largest (in magnitude) externally studentized residual (5.9649).
 
 
-#From the plot above, there is 7 observations(1048,1769,1684, 74, 72, 1689, 1311) located in the intersection areas of both outlier and leverage, which is to say, those observations has both the leverage and the externally studentized residual exceeding their respective thresholds.Due to its large DIFFITS and Cook's D, they are potentially influential observations.
+#From the plot above, there is 7 observations(1048,1769,1684, 74, 72, 1689, 1311) located in the intersection areas of both outlier and leverage, which is to say, those observations has both the leverage and the externally studentized residual exceeding their respective thresholds.Due to its large DIFFITS and Cook’s D, they are potentially influential observations.
 #The thresholds for the externally studentized residual are -2 and 2, i.e. 2 in magnitude. The thresholds for the leverage of the R default is 0.011
 
 #From (DFFITS), observations 879 and 1769 appear to be influential observations. Observation 1155 has extraordinarily large leverage. Therefore, I choose to remove these 14 observations in the re-fitted mode
 
-rm2.df3 = df3[-c(879, 1769, 1155, 1048, 1769, 1684, 74, 72, 1689, 1311), ]
-rm.m_full =  lm(
-  BMI ~ SleepHrsNight + Age + Gender + Race1 + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 +
-    DaysPhysHlthBad + PhysActive,
-  rm2.df3
+rm3.df3 = df3[-c(170, 208, 444, 926, 1361, 1454, 1546, 1655, 1910, 1958), ]
+rm.m_3 =  lm(
+  BMI ~ SleepHrsNight + Age + Gender + Race1  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+    DaysPhysHlthBad + HealthGen + PhysActive,
+  rm3.df3
 )
 ## Before removing these observations, the estimated coefficients are:
-summary(m_full)$coef
+summary(m_3)$coef
 ## After removing these observations, the estimated coefficients are:
-summary(rm.m_full)$coef
+summary(rm.m_3)$coef
 #### change percent
-abs((rm.m_full$coefficients - m_full$coefficients) / (m_full$coefficients) * 100)
+abs((rm.m_3$coefficients - m_3$coefficients) / (m_3$coefficients) * 100)
 
 #The estimated regression coefficients doesn't change slightly after removing these observations. 5 of the estimates have changed by more than 10% after calculation. The p-value for the coefficient forSleepHrsNight    is becoming insignificant with 95% confidence level.
 
 ##################   multicollinearity   ######################
 #Pearson correlations
-var2 = c(
+var3 = c(
   "BMI",
   "SleepHrsNight",
   "Age",
@@ -198,15 +212,20 @@ var2 = c(
   "AlcoholYear",
   "Smoke100",
   "DaysPhysHlthBad",
-  "PhysActive"
+  "PhysActive",
+  "Poverty",
+  "UrineFlow1",
+  "DaysMentHlthBad",
+  "HealthGen"
 )
-newData2 = df3[, var2]
+
+newData3 = df3[, var3]
 library("corrplot")
 par(mfrow = c(1, 2))
-cormat2 = cor(as.matrix(newData2[, -c(1)], method = "pearson"))
-p.mat2 = cor.mtest(as.matrix(newData2[, -c(1)]))$p
+cormat3 = cor(as.matrix(newData3[, -c(1)], method = "pearson"))
+p.mat3 = cor.mtest(as.matrix(newData3[, -c(1)]))$p
 corrplot(
-  cormat2,
+  cormat3,
   method = "color",
   type = "upper",
   number.cex = 1,
@@ -214,7 +233,7 @@ corrplot(
   addCoef.col = "black",
   tl.col = "black",
   tl.srt = 90,
-  p.mat = p.mat2,
+  p.mat = p.mat3,
   sig.level = 0.05,
   insig = "blank",
 )
@@ -222,5 +241,5 @@ corrplot(
 #None of the covariates seem strongly correlated.There is no evidence of collinearity from the pair-wise correlations.
 
 # collinearity diagnostics (VIF)
-car::vif(m_full)
+car::vif(m_3)
 #From the VIF values in the output above, once again we do not observe any potential collinearity issues. In fact, the VIF values are fairly small: none of the values exceed 10.
