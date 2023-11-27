@@ -4,10 +4,10 @@
 
 ### Read data ##################
 library(NHANES)
-library(dplyr)
 df0 <- NHANES
 df <- NHANES[NHANES$Age >= 18 & NHANES$Age < 60,]
 df <- df[!duplicated(df),]
+
 
 ############### (1) Data cleaning ########################################
 ### Create a subset with only varaibles of interest: Age, Comorbidity1, CurrentSmoker, Depression, Fatalism, HiChol, Htn, NIHScore, Optimism, Pessimism, R_E, Sex, Spirituality
@@ -103,15 +103,22 @@ high_bound_diff_f <- f_diff + 1.96 * se_f
 Cont_vars = c( "BMI",
                "SleepHrsNight",
                "Age",
+
+
                "TotChol",
                "BPDiaAve",
                "BPSysAve",
                "AlcoholYear",
+
                "DaysPhysHlthBad",
+
                "Poverty",
                "UrineFlow1",
                "DaysMentHlthBad"
-               )
+)
+
+
+
 
 Cont_complete = subset(data_complete, select = Cont_vars)
 Cont_incomplete = subset(data_incomplete, select = Cont_vars)
@@ -183,5 +190,4 @@ Cat_summary = data.frame(cbind(Cat_Number_complete, Cat_prop_complete,
                                Cat_Number_incomplete,
                                Cat_prop_incomplete, Cat_P_value), check.names = F)
 format(Cat_summary, nsmall = 2) ## only keep the first two decimals
-
 
