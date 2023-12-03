@@ -1,0 +1,42 @@
+---
+title: "Final Report"
+author: "Liancheng, He Zhang, Zhengrui Huang, Zibo Yu"
+date: "2023-12-03"
+bibliography: final650.bib
+csl: elsevier-harvard.csl
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1.Introduction
+
+The intricate interplay between physical health, represented by Body Mass Index (BMI), sleep duration, and mental health is a subject of ongoing research, revealing complex and sometimes contradictory findings. Previous studies have explored these relationships individually, but the comprehensive understanding of how they intertwine remains elusive.
+Research suggests a correlation between insufficient sleep and increased BMI, potentially leading to obesity—a significant public health concern. The mechanisms behind this association are thought to involve metabolic changes, appetite regulation, and energy balance disruptions caused by sleep deprivation. However, not all studies corroborate this, with some failing to find a significant link between sleep duration and BMI changes [@ijerph16224327].
+Mental health adds another dimension to this relationship. Poor mental health can adversely affect both sleep patterns and dietary choices, potentially leading to weight gain and altered BMI. Conversely, the psychological stress of obesity can impact mental well-being, creating a cyclical pattern of health deterioration [@AMBROSIO2018132,@10.1210/clinem/dgac707].
+This complexity is further compounded when considering demographic variables like age and gender. Age-related physiological changes can influence sleep patterns, metabolism, and mental health differently in various stages of life. Gender differences in hormonal balance, societal roles, and stress response can also significantly affect these relationships.
+Recognizing these gaps in current research, our study intends to re-examine the relationship between BMI, sleep duration, and mental health, with a nuanced consideration of age and gender. We aim to dissect these complex interactions in adults aged 18 to 60 years, providing a more comprehensive understanding that could guide future public health strategies and interventions.
+
+# 2.Method
+
+## 2.1 study population
+The study sample was obtained from the National Health and Nutrition Examination Survey (NHANES) database, managed by the Centers for Disease Control and Prevention (CDC). This sample encompasses individuals aged 18-60 residing in the United States. The NHANES program, initiated in the 1960s, shifted in 1999 to a continuous data collection model, operating in two-year cycles. Each year, approximately 5,000 individuals of various ages are selected for in-home interviews, followed by a comprehensive health examination.
+ 
+## 2.2 Variables
+IThis section details the variables extracted from the NHANES dataset.
+
+### 2.2.1 Primary Interest
+The variables of primary interest included hours study participant usually gets at night on weekdays or workdays (SleepHrsNight), number of days participant’s mental health was not good out of the past 30 days (DaysMentHlthBad), age and gender.
+
+### 2.2.2. Outcome
+The primary outcome variable for our analysis is Body Mass Index (BMI), which ranges from 15 to 69. High BMI values are indicative of overweight or obesity.
+
+### 2.2.3. Covariates
+Additional covariates, such as demographic information, total cholesterol levels, combined diastolic blood pressure readings, and physical health status, were included in the final analysis. These were selected based on bivariate analyses and a review of relevant literature.
+
+
+
+
+# Reference
