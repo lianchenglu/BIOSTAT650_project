@@ -41,6 +41,9 @@ df3 <- na.omit(df2)
 
 library(dplyr)
 ############### (2) Data categorize ########################################
+
+library(gtsummary)
+library(kableExtra)
 df3 <- df3 %>%
   mutate(BMIcat = case_when(
     BMI < 18  ~ "<18",
@@ -78,4 +81,48 @@ table_basic <- df3 %>%
   )
 
 # View the table
-print(table1)
+print(table_basic)
+
+
+############### (4) convert to latex ########################################
+
+# Assuming 'table1' is already created using gtsummary
+
+# Convert to a kableExtra object
+kable_table <- as_kable(table_basic)
+
+# Assuming 'kable_table' is already created using gtsummary
+# Convert to a kableExtra object
+latex_table <- kable_table %>%
+  kable_styling(latex_options = c("striped", "hold_position"))
+
+# Save the LaTeX table to file
+save_kable(file = "table_for_overleaf.tex", latex_table)
+
+############### (4) convert to excel ########################################
+library(openxlsx)
+# Assuming 'table_basic' is your gtsummary table
+df_for_excel <- as.data.frame(table_basic)
+write.xlsx(df_for_excel, file = "my_table.xlsx")
+
+############### (5) convert to png ########################################
+# Load necessary libraries
+library(ggplot2)
+library(gridExtra)
+library(grid)
+
+
+
+# Assuming 'df' is your data frame
+df <- as.data.frame(table_basic)  # Your data frame here
+
+# Convert the data frame to a table grob
+table_grob <- tableGrob(df)
+
+# Draw the plot (not shown on screen, only created for saving)
+png(filename = "table_image.png", width = 900, height = 800)
+grid.draw(table_grob)
+dev.off()  # Close the PNG device
+
+
+
