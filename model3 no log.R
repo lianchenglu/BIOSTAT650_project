@@ -151,7 +151,7 @@ m_3.res[qq.m_3.res]
 
 ############### influential observations  #################
 
-influence3 = data.frame(
+influence2 = data.frame(
   Residual = resid(m_3),
   Rstudent = rstudent(m_3),
   HatDiagH = hat(model.matrix(m_3)),
@@ -161,20 +161,20 @@ influence3 = data.frame(
 )
 # DFFITS
 ols_plot_dffits(m_3)
-influence3[order(abs(influence3$DFFITS), decreasing = T), ] %>% head()
+influence2[order(abs(influence2$DFFITS), decreasing = T), ] %>% head()
 #From the plot above, we can see 2 observations with the largest (magnitude) of DFFITS, observation 879 and 1769 By printing the corresponding values of DFFITS in the output dataset, we can obtain their DFFITS values: 0.5673 for observation 879, 0.5872 for observation 1769
 
 # Cook's D
 ols_plot_cooksd_bar(m_3)
-influence3[order(influence3$COOKsDistance, decreasing = T), ] %>% head()
+influence2[order(influence2$COOKsDistance, decreasing = T), ] %>% head()
 #From the plot above, we can see that the observation 879 and 1769 also have the largest Cook’s Distance. By printing the corresponding values of Cook’s D in the output dataset, we can obtain their Cook’s D values:0.0108 for observation 879, 0.0145 for observation 1769
 
 #leverage
 ols_plot_resid_lev(m_3)
 #high leverage
-influence3[order(influence3$HatDiagH, decreasing = T), ] %>% head()
+influence2[order(influence2$HatDiagH, decreasing = T), ] %>% head()
 #high studentized residual
-influence3[order(influence3$Rstudent, decreasing = T), ] %>% head()
+influence2[order(influence2$Rstudent, decreasing = T), ] %>% head()
 #From the plot above, we can see that the observation 1155 has the largest leverage (0.0368). Observations 1862 has the largest (in magnitude) externally studentized residual (5.9649).
 
 

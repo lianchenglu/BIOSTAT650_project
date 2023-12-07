@@ -78,14 +78,14 @@ df3 <- df3 %>%
 ## model_4 add additional risk factors ##
 df3$logBMI = log(df3$BMI + 1)
 m_full = lm(
-  logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
+  logBMI ~ SleepHrsNight + DaysMentHlthBad+ Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 +
     DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender,
   df3
 )
 
 summary(m_full)
 car::Anova(m_full, type = "III")
-
+Confint(m_full)
 ########### model 4 diagnosis ###########
 par(mfrow = c(2, 3)) #read more from ?plot.lm
 plot(m_full, which = 1)
@@ -167,26 +167,23 @@ ols_plot_dffits(m_full)
 influence4[order(abs(influence4$DFFITS), decreasing = T), ] %>% head()
 #From the plot above, we can see 2 observations with the largest (magnitude) of DFFITS, observation 879 and 1769 By printing the corresponding values of DFFITS in the output dataset, we can obtain their DFFITS values: 0.5673 for observation 879, 0.5872 for observation 1769
 
+
 # Cook's D
 ols_plot_cooksd_bar(m_full)
-influence4[order(influence4$COOKsDistance, decreasing = T), ] %>% head()
-#From the plot above, we can see that the observation 879 and 1769 also have the largest Cook's Distance. By printing the corresponding values of Cook's D in the output dataset, we can obtain their Cook's D values:0.0108 for observation 879, 0.0145 for observation 1769
-
-#leverage
-ols_plot_resid_lev(m_full)
-#high leverage
-influence4[order(influence4$HatDiagH, decreasing = T), ] %>% head()
-#high studentized residual
-influence4[order(influence4$Rstudent, decreasing = T), ] %>% head()
-#From the plot above, we can see that the observation 1155 has the largest leverage (0.0368). Observations 1862 has the largest (in magnitude) externally studentized residual (5.9649).
+influence4[order(influence4$COOKsDistance,decreasing = T),] %>% head()
 
 
 #From the plot above, there is 7 observations(1048,1769,1684, 74, 72, 1689, 1311) located in the intersection areas of both outlier and leverage, which is to say, those observations has both the leverage and the externally studentized residual exceeding their respective thresholds.Due to its large DIFFITS and Cook's D, they are potentially influential observations.
 #The thresholds for the externally studentized residual are -2 and 2, i.e. 2 in magnitude. The thresholds for the leverage of the R default is 0.011
-
+#leverage
+ols_plot_resid_lev(m_full)
+#high leverage
+influence4[order(influence4$HatDiagH,decreasing = T),] %>% head()
+#high studentized residual
+influence4[order(influence4$Rstudent,decreasing = T),] %>% head()
 #From (DFFITS), observations 879 and 1769 appear to be influential observations. Observation 1155 has extraordinarily large leverage. Therefore, I choose to remove these 14 observations in the re-fitted mode
 
-rm4.df3 = df3[-c(90, 208, 444, 926, 1548, 1655, 1910, 1958), ]
+rm4.df3 = df3[-c(1048, 1769, 1684, 74, 72, 1689, 1311, 879), ]
 rm.m_full =  lm(
   logBMI ~ SleepHrsNight + Age + Gender + factor(Race1)  + Poverty + TotChol + BPDiaAve + BPSysAve + AlcoholYear + Smoke100 + UrineFlow1 + DaysMentHlthBad +
     DaysPhysHlthBad + factor(HealthGen) + PhysActive + SleepHrsNight*Age + SleepHrsNight*Gender,
@@ -277,6 +274,14 @@ library(ggplot2)
 ggplot(new_data, aes(x = SleepHrsNight, y = predicted_BMI, group = factor(Age))) +
   geom_line(aes(color = factor(Age))) +
   labs(title = "Interaction between Sleep Hours and Age on BMI",
+       x = "Sleep Hours per Night",
+       y = "Predicted BMI")
+
+
+library(ggplot2)
+ggplot(new_data, aes(x = SleepHrsNight, y = predicted_BMI, group = factor(Gender))) +
+  geom_line(aes(color = factor(Gender))) +
+  labs(title = "Interaction between Sleep Hours and Gender on BMI",
        x = "Sleep Hours per Night",
        y = "Predicted BMI")
 
