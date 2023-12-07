@@ -1,24 +1,15 @@
 ---
-title: "peoject"
+title: "BIOSTAT650 Project Code"
 author: "Liancheng, He Zhang, Zhengrui Huang, Zibo Yu"
 date: "2023-12-07"
 output:
   html_document:
     df_print: paged
-  pdf_document: default
 ---
-
-complete vs incomplete ########################################
-
-Set working directory
-
-Write your own code to set your current working directory to a folder with all files extracted from “Data.zip”
-
-Example: setwd("~/Documents/Biostat 650/project")
 
 Read data ##################
 
-```{r warning=FALSE}
+```{r warning=FALSE, message=FALSE}
 library(NHANES)
 library(dplyr)
 df0 <- NHANES
@@ -284,7 +275,7 @@ format(Cat_summary, nsmall = 2) ## only keep the first two decimals
 
 Basic characteritics ########################################
 
-```{r warning=FALSE}
+```{r warning=FALSE, message=FALSE}
 rm(list = ls())
 gc()
 set.seed(123)
@@ -345,7 +336,7 @@ library(dplyr)
 
 (2) Data categorize ########################################
 
-```{r warning=FALSE}
+```{r warning=FALSE, message=FALSE}
 library(gtsummary)
 library(kableExtra)
 df3 <- df3 %>%
@@ -359,7 +350,7 @@ df3 <- df3 %>%
 
 (3) generate table ########################################
 
-```{r}
+```{r warning=FALSE}
 table_basic <- df3 %>%
   tbl_summary(
     by = BMIcat,
@@ -454,7 +445,7 @@ df <- df[!duplicated(df),]
 names(df)
 ```
 
-df$BPSysAve
+df\$BPSysAve
 
 ```{r warning=FALSE}
 library(dplyr)
@@ -651,7 +642,7 @@ influence2 = data.frame(
 
 DFFITS
 
-```{r}
+```{r warning=FALSE}
 ols_plot_dffits(m_3)
 influence2[order(abs(influence2$DFFITS), decreasing = T), ] %>% head()
 ```
@@ -716,7 +707,7 @@ summary(rm.m_3)$coef
 
 change percent
 
-```{r}
+```{r warning=FALSE}
 abs((rm.m_3$coefficients - m_3$coefficients) / (m_3$coefficients) * 100)
 ```
 
@@ -961,7 +952,7 @@ summary(rm.m_3)$coef
 
 change percent
 
-```{r}
+```{r warning=FALSE}
 abs((rm.m_3$coefficients - m_3$coefficients) / (m_3$coefficients) * 100)
 ```
 
